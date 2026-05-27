@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>校園綜合平台 - 動態管理版</title>
+    <title>校園綜合平台 - 終極修復版</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; color: #333333; }
@@ -40,13 +40,10 @@
         .admin-dashboard { background: #fffaf0; border-bottom: 3px dashed #dd6b20; padding: 20px; display: none; }
         .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 768px) { .admin-grid { grid-template-columns: 1fr 1fr; } }
-        .admin-card { background: white; border: 1px solid #feebc8; border-radius: 6px; padding: 15px; }
-        .form-row { margin-bottom: 10px; }
-        .form-row label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #4a5568; }
         .search-input { width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; outline: none; }
         .select-input { width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
 
-        /* 1️⃣ 圖書館排版 */
+        /* 圖書館排版 */
         .main-content { padding: 20px; min-height: 350px; }
         .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
         .book-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative; cursor: pointer; transition: transform 0.1s; }
@@ -60,7 +57,7 @@
         .delete-btn { position: absolute; top: 6px; right: 6px; background: rgba(229, 62, 62, 0.1); color: #e53e3e; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 10; font-weight: bold; }
         .delete-btn:hover { background: #e53e3e; color: white; }
 
-        /* 2️⃣ 學習系統排版 */
+        /* 學習系統排版 */
         .breadcrumb { padding: 12px 20px; background: #edf2f7; font-size: 14px; font-weight: bold; color: #4a5568; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 5px; }
         .file-explorer { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 20px; padding: 25px; }
         .explorer-item { text-align: center; cursor: pointer; padding: 15px 10px; border-radius: 8px; transition: background 0.1s; position: relative; border: 1px solid transparent; }
@@ -68,7 +65,7 @@
         .file-icon { font-size: 48px; margin-bottom: 6px; }
         .file-name { font-size: 13px; font-weight: 500; color: #2d3748; word-break: break-all; line-height: 1.3; }
 
-        /* 3️⃣ 公告欄排版 */
+        /* 公告欄排版 */
         .news-list { padding: 20px; }
         .news-item { background: #fff; border-left: 4px solid #dd6b20; padding: 15px; margin-bottom: 15px; border-radius: 0 6px 6px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); position: relative; }
         .news-date { font-size: 12px; color: #a0aec0; margin-bottom: 4px; }
@@ -91,7 +88,9 @@
         <h3 style="margin-top:0; color: #1a365d;">🔒 歡迎訪問校園綜合網</h3>
         <p style="font-size: 14px; color:#4a5568;">請輸入網站存取密碼以繼續：</p>
         <input type="password" id="siteTokenInput" class="search-input" placeholder="請輸入密碼..." style="padding:10px; text-align:center; margin-bottom:15px;">
-        <button class="btn btn-primary" onclick="verifySiteLock()" style="background:#1a365d;">進入入口網</button>
+        <button class="btn btn-primary" onclick="verifySiteLock()" style="background:#1a365d; margin-bottom:10px;">進入入口網</button>
+        
+        <button onclick="forceResetAllSystemData()" style="background:#e53e3e; color:white; border:none; padding:8px; border-radius:4px; font-size:11px; width:100%; cursor:pointer; font-weight:bold;">💥 畫面壞掉/不對？點此清除舊版相容快取</button>
     </div>
 </div>
 
@@ -137,8 +136,8 @@
             <button class="btn btn-primary" onclick="addNewBook()" style="height:40px;">儲存上架</button>
         </div>
     </div>
-    <div class="search-section">
-        <input type="text" class="search-input" id="searchInput" oninput="filterBooks()" placeholder="🔍 輸入關鍵字篩選館藏... (💡 登入後點擊下方卡片直接借/還)">
+    <div class="search-section" style="padding:15px;">
+        <input type="text" class="search-input" id="searchInput" oninput="filterBooks()" placeholder="🔍 輸入關鍵字篩選館藏...">
     </div>
     <div class="main-content"><div class="books-grid" id="booksGrid"></div></div>
 </div>
@@ -151,21 +150,19 @@
     </header>
     
     <div class="admin-dashboard" id="adminDashboard_study">
-        <div style="color:#2c7a7b; font-weight:bold; margin-bottom:10px;">✍️ 在當前資料夾放資料 (管理員功能)</div>
-        <div class="admin-grid" style="grid-template-columns: 1fr 150px 150px; gap:10px; align-items:center;">
-            <div>
-                <input type="text" class="search-input" id="newItemName" placeholder="請輸入資料夾或檔案的名稱...">
+        <div style="color:#2c7a7b; font-weight:bold; margin-bottom:10px;">✍️ 上傳真實檔案 或 建立新資料夾 (管理員功能)</div>
+        <div class="admin-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
+            <div style="background:white; padding:12px; border:1px solid #e2e8f0; border-radius:6px;">
+                <label style="font-size:12px; font-weight:bold; color:#4a5568;">📂 建立子資料夾</label>
+                <div style="display:flex; gap:5px; margin-top:5px;">
+                    <input type="text" class="search-input" id="newFolderNameInput" placeholder="請輸入資料夾名稱..." style="padding:6px;">
+                    <button class="btn btn-primary" onclick="createNewFolder()" style="background:#319795; width:90px; font-size:12px;">建立</button>
+                </div>
             </div>
-            <div>
-                <select id="newItemType" class="select-input">
-                    <option value="folder">新建 資料夾 📁</option>
-                    <option value="ppt">新建 PPT 📊</option>
-                    <option value="pdf">新建 PDF 📕</option>
-                    <option value="doc">新建 Word 📘</option>
-                    <option value="excel">新建 Excel 💚</option>
-                </select>
+            <div style="background:white; padding:12px; border:1px solid #e2e8f0; border-radius:6px;">
+                <label style="font-size:12px; font-weight:bold; color:#4a5568;">📤 選擇手機/電腦檔案上傳</label>
+                <input type="file" id="realFileInput" class="search-input" style="padding:4px; font-size:12px; margin-top:5px; border:1px dashed #cbd5e0;">
             </div>
-            <button class="btn btn-primary" onclick="addNewStudyItem()" style="background:#319795; height:40px;">建立並放置</button>
         </div>
     </div>
 
@@ -200,16 +197,6 @@
         </div>
         <div class="switch-link" onclick="switchAuthMode('register')">沒有帳號？點此自訂註冊讀者</div>
     </div>
-    <div class="modal-box" id="registerBox" style="display:none;">
-        <h3 style="margin-top:0;text-align:center;color:#dd6b20;">新讀者註冊</h3>
-        <div class="form-row"><label>設定全新帳號</label><input type="text" class="search-input" id="regUser" placeholder="請設定帳號" style="padding:8px;"></div>
-        <div class="form-row"><label>設定個人密碼</label><input type="password" class="search-input" id="regPass" placeholder="請設定專屬密碼" style="padding:8px;"></div>
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn btn-primary" onclick="handleRegister()" style="background: #dd6b20;">完成註冊</button>
-            <button class="btn btn-secondary" onclick="closeAuthModal()" style="width: 100%;">取消</button>
-        </div>
-        <div class="switch-link" onclick="switchAuthMode('login')" style="color:#dd6b20;">已有帳號？返回登入</div>
-    </div>
 </div>
 
 <footer><div>© 2026 校園數位整合系統一體化平台</div></footer>
@@ -221,33 +208,43 @@
         { title: "全球經濟學學報", code: "1019-5289", status: "可借閱", borrower: null }
     ];
     const defaultNews = [
-        { date: "2026-05-27", content: "📢 管理員已解鎖學習硬碟權限！切換管理員身份即可自由在各層資料夾新增放資料囉！" }
+        { date: "2026-05-27", content: "📢 系統修復完成！請登入 admin 後點選「學習系統」，點擊右側按鈕即可開啟檔案選擇器！" }
     ];
-    // 預設學習資料夾樹狀圖形結構
     const defaultFolderStructure = {
         id: "root", name: "根目錄", type: "folder",
         children: [
-            { id: "f1", name: "115學年度隨堂講義_PPT", type: "folder", children: [{ id: "file_1", name: "第一週_網頁工程概論.ppt", type: "ppt" }] },
-            { id: "f2", name: "期末專案參考_PDF", type: "folder", children: [] }
+            { id: "f1", name: "115學年度隨堂講義", type: "folder", children: [] }
         ]
     };
 
-    if(localStorage.getItem('sys_v3_initialized') === null) {
-        localStorage.setItem('sys_books', JSON.stringify(defaultBooks));
-        localStorage.setItem('sys_news', JSON.stringify(defaultNews));
-        localStorage.setItem('sys_folder', JSON.stringify(defaultFolderStructure));
-        localStorage.setItem('sys_users', JSON.stringify({ 'admin': 'admin123' })); // 內建管理員
-        localStorage.setItem('sys_v3_initialized', 'true');
+    function initDatabase() {
+        if(localStorage.getItem('sys_v5_fix') === null) {
+            localStorage.setItem('sys_books', JSON.stringify(defaultBooks));
+            localStorage.setItem('sys_news', JSON.stringify(defaultNews));
+            localStorage.setItem('sys_folder', JSON.stringify(defaultFolderStructure));
+            localStorage.setItem('sys_users', JSON.stringify({ 'admin': 'admin123' }));
+            localStorage.setItem('sys_v5_fix', 'true');
+        }
     }
+    initDatabase();
 
-    let booksData = JSON.parse(localStorage.getItem('sys_books'));
-    let newsData = JSON.parse(localStorage.getItem('sys_news'));
-    let folderRootData = JSON.parse(localStorage.getItem('sys_folder'));
-    let usersDatabase = JSON.parse(localStorage.getItem('sys_users'));
+    let booksData = JSON.parse(localStorage.getItem('sys_books')) || defaultBooks;
+    let newsData = JSON.parse(localStorage.getItem('sys_news')) || defaultNews;
+    let folderRootData = JSON.parse(localStorage.getItem('sys_folder')) || defaultFolderStructure;
+    let usersDatabase = JSON.parse(localStorage.getItem('sys_users')) || { 'admin': 'admin123' };
     
     let currentUser = null;
     let currentSystemView = '';
-    let folderPathStack = [folderRootData]; // 紀錄瀏覽資料夾的路徑軌跡
+    let folderPathStack = [folderRootData];
+
+    // 💥 終極重置函數：徹底抹除任何舊版衝突的殘留
+    function forceResetAllSystemData() {
+        if(confirm("確定要重置系統資料庫以修復畫面嗎？這會清除目前的模擬資料。")) {
+            localStorage.clear();
+            alert("快取清除成功！網頁即將自動重新整理。");
+            window.location.reload();
+        }
+    }
 
     // ================== 🔒 密碼驗證鎖 ==================
     function verifySiteLock() {
@@ -287,6 +284,7 @@
         const isAdm = currentUser && currentUser.role === 'admin';
         dataToRender.forEach((book) => {
             const actualIdx = booksData.findIndex(b => b.code === book.code);
+            if(actualIdx === -1) return;
             const isAvailable = book.status === "可借閱";
             grid.innerHTML += `
                 <div class="book-card" onclick="clickToBorrowOrReturn(${actualIdx})">
@@ -321,16 +319,74 @@
     function deleteBook(idx) { if(confirm('確定下架移除書籍？')) { booksData.splice(idx, 1); localStorage.setItem('sys_books', JSON.stringify(booksData)); renderBooks(); } }
     function filterBooks() { const kw = document.getElementById('searchInput').value.toLowerCase().trim(); renderBooks(booksData.filter(b => b.title.toLowerCase().includes(kw) || b.code.toLowerCase().includes(kw))); }
 
-    // ================== 2️⃣ ⭐ 學習系統模組 (動態放資料硬碟) ==================
+    // ================== 2️⃣ 📁 學習系統模組 (真正選取真實檔案上傳) ==================
+    try {
+        document.getElementById('realFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 1500000) {
+                alert('檔案太大囉！因快取容量有限，請上傳 1.5MB 以內的檔案。');
+                this.value = ''; return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Data = event.target.result;
+                let fileType = 'doc';
+                const nameLower = file.name.toLowerCase();
+                if (nameLower.endsWith('.ppt') || nameLower.endsWith('.pptx')) fileType = 'ppt';
+                else if (nameLower.endsWith('.pdf')) fileType = 'pdf';
+                else if (nameLower.endsWith('.xls') || nameLower.endsWith('.xlsx')) fileType = 'excel';
+                else if (nameLower.endsWith('.png') || nameLower.endsWith('.jpg') || nameLower.endsWith('.jpeg') || nameLower.endsWith('.gif')) fileType = 'image';
+
+                const newItem = {
+                    id: "file_" + Date.now(),
+                    name: file.name,
+                    type: fileType,
+                    fileData: base64Data
+                };
+
+                const currentFolder = folderPathStack[folderPathStack.length - 1];
+                if(!currentFolder.children) currentFolder.children = [];
+                currentFolder.children.push(newItem);
+
+                localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
+                document.getElementById('realFileInput').value = '';
+                renderFolder();
+                alert(`✅ 檔案《${file.name}》已成功放置！`);
+            };
+            reader.readAsDataURL(file);
+        });
+    } catch(err) { console.log(err); }
+
+    function createNewFolder() {
+        const name = document.getElementById('newFolderNameInput').value.trim();
+        if(!name) { alert('請輸入資料夾名稱！'); return; }
+        
+        const newFolder = {
+            id: "folder_" + Date.now(),
+            name: name,
+            type: "folder",
+            children: []
+        };
+
+        const currentFolder = folderPathStack[folderPathStack.length - 1];
+        if(!currentFolder.children) currentFolder.children = [];
+        currentFolder.children.push(newFolder);
+        localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
+        
+        document.getElementById('newFolderNameInput').value = '';
+        renderFolder();
+    }
+
     function renderFolder() {
         const currentFolder = folderPathStack[folderPathStack.length - 1];
         const explorer = document.getElementById('fileExplorer'); explorer.innerHTML = '';
         const isAdm = currentUser && currentUser.role === 'admin';
         
-        // 更新麵包屑
         document.getElementById('folderBreadcrumb').innerText = "目前位置: " + folderPathStack.map(f => f.name).join(' / ') + ' /';
 
-        // 塞入返回上一層
         if (folderPathStack.length > 1) {
             explorer.innerHTML += `
                 <div class="explorer-item" onclick="popFolder()">
@@ -339,60 +395,27 @@
                 </div>`;
         }
 
-        // 渲染子項目
-        currentFolder.children.forEach((item, idx) => {
-            let icon = '📄';
-            if (item.type === 'folder') icon = '📁';
-            else if (item.type === 'ppt') icon = '📊';
-            else if (item.type === 'pdf') icon = '📕';
-            else if (item.type === 'doc') icon = '📘';
-            else if (item.type === 'excel') icon = '💚';
+        if(currentFolder && currentFolder.children) {
+            currentFolder.children.forEach((item, idx) => {
+                let icon = '📄';
+                if (item.type === 'folder') icon = '📁';
+                else if (item.type === 'ppt') icon = '📊';
+                else if (item.type === 'pdf') icon = '📕';
+                else if (item.type === 'excel') icon = '💚';
+                else if (item.type === 'image') icon = '🖼️';
 
-            explorer.innerHTML += `
-                <div class="explorer-item" onclick="clickFolderItem(${idx})">
-                    <button class="delete-btn" style="${isAdm ? 'display:flex;' : 'none'}" onclick="event.stopPropagation(); deleteStudyItem(${idx});">×</button>
-                    <div class="file-icon">${icon}</div>
-                    <div class="file-name">${item.name}</div>
-                </div>`;
-        });
-    }
-
-    // ⭐ 管理員建立新項目 (放資料)
-    function addNewStudyItem() {
-        const nameInput = document.getElementById('newItemName').value.trim();
-        const typeInput = document.getElementById('newItemType').value;
-        if (!nameInput) { alert('請輸入名稱！'); return; }
-
-        let extension = '';
-        if (typeInput !== 'folder' && !nameInput.includes('.')) {
-            if (typeInput === 'ppt') extension = '.ppt';
-            if (typeInput === 'pdf') extension = '.pdf';
-            if (typeInput === 'doc') extension = '.docx';
-            if (typeInput === 'excel') extension = '.xlsx';
+                explorer.innerHTML += `
+                    <div class="explorer-item" onclick="clickFolderItem(${idx})">
+                        <button class="delete-btn" style="${isAdm ? 'display:flex;' : 'none'}" onclick="event.stopPropagation(); deleteStudyItem(${idx});">×</button>
+                        <div class="file-icon">${icon}</div>
+                        <div class="file-name">${item.name}</div>
+                    </div>`;
+            });
         }
-
-        const newItem = {
-            id: "item_" + Date.now(),
-            name: nameInput + extension,
-            type: typeInput,
-            children: typeInput === 'folder' ? [] : undefined
-        };
-
-        // 拿到目前資料夾的指標，直接塞進 children
-        const currentFolder = folderPathStack[folderPathStack.length - 1];
-        currentFolder.children.push(newItem);
-
-        // 同步寫入 LocalStorage 持久化儲存
-        localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
-        
-        document.getElementById('newItemName').value = '';
-        renderFolder();
-        alert(`成功放置項目：${newItem.name}`);
     }
 
-    // 刪除學習檔案項目
     function deleteStudyItem(idx) {
-        if (confirm('確定要永久刪除此教學項目嗎？')) {
+        if (confirm('確定要永久刪除此項目嗎？')) {
             const currentFolder = folderPathStack[folderPathStack.length - 1];
             currentFolder.children.splice(idx, 1);
             localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
@@ -406,7 +429,12 @@
         if (target.type === 'folder') {
             folderPathStack.push(target); renderFolder();
         } else {
-            alert(`🖥️ 模擬打開檔案：\n格式：[${target.type.toUpperCase()}]\n名稱：${target.name}`);
+            const downloadLink = document.createElement("a");
+            downloadLink.href = target.fileData;
+            downloadLink.download = target.name;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
         }
     }
     function popFolder() { if(folderPathStack.length > 1) { folderPathStack.pop(); renderFolder(); } }
@@ -433,47 +461,33 @@
     function deleteNews(idx) { if(confirm('確定移除公告？')) { newsData.splice(idx, 1); localStorage.setItem('sys_news', JSON.stringify(newsData)); renderNews(); } }
 
     // ================== 🔐 獨立帳號驗證中心 ==================
-    function openAuthModal(mode) { document.getElementById('authModal').style.display = 'flex'; switchAuthMode(mode); }
+    function openAuthModal(mode) { document.getElementById('authModal').style.display = 'flex'; }
     function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
-    function switchAuthMode(mode) {
-        document.getElementById('loginBox').style.display = mode === 'login' ? 'block' : 'none';
-        document.getElementById('registerBox').style.display = mode === 'register' ? 'block' : 'none';
-    }
-    function handleRegister() {
-        const u = document.getElementById('regUser').value.trim(); const p = document.getElementById('regPass').value.trim();
-        if(!u || !p) return; if(usersDatabase[u]) { alert('此帳號已存在！'); return; }
-        usersDatabase[u] = p; localStorage.setItem('sys_users', JSON.stringify(usersDatabase));
-        alert('註冊成功！'); switchAuthMode('login'); document.getElementById('loginUser').value = u;
-    }
     function handleLogin() {
         const u = document.getElementById('loginUser').value.trim(); const p = document.getElementById('loginPass').value.trim();
         if(usersDatabase[u] && usersDatabase[u] === p) {
             currentUser = (u === 'admin') ? { name: '最高管理員', role: 'admin' } : { name: u + ' 同學', role: 'student' };
             closeAuthModal(); syncUserUI();
             alert('歡迎回來！' + currentUser.name);
-        } else { alert('帳號或密碼錯誤！'); }
+        } else { alert('帳號或密碼錯誤！\n提示：管理員帳號 admin 密碼 admin123'); }
     }
     function syncUserUI() {
         const isLogin = currentUser !== null;
         const nameLabel = currentUser ? currentUser.name : '訪客您好';
         
-        // 更新大首頁 UI
         document.getElementById('portalUserInfo').innerText = nameLabel;
         document.getElementById('portalLoginBtn').style.display = isLogin ? 'none' : 'block';
         document.getElementById('portalLogoutBtn').style.display = isLogin ? 'block' : 'none';
 
-        // 更新子系統 Header 名稱
         document.getElementById('headerUserInfo_lib').innerText = '使用者: ' + nameLabel;
         document.getElementById('headerUserInfo_study').innerText = '使用者: ' + nameLabel;
         document.getElementById('headerUserInfo_news').innerText = '使用者: ' + nameLabel;
 
-        // 連動解鎖所有管理員面板
         const isAdm = currentUser && currentUser.role === 'admin';
         document.getElementById('adminDashboard_lib').style.display = isAdm ? 'block' : 'none';
         document.getElementById('adminDashboard_study').style.display = isAdm ? 'block' : 'none';
         document.getElementById('adminDashboard_news').style.display = isAdm ? 'block' : 'none';
 
-        // 重新刷新當前畫面
         if(currentSystemView === 'library') renderBooks();
         if(currentSystemView === 'learning') renderFolder();
         if(currentSystemView === 'announcement') renderNews();
@@ -481,4 +495,4 @@
     function logout() { currentUser = null; syncUserUI(); }
 </script>
 </body>
-  </html>
+</html>
