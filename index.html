@@ -1,1 +1,180 @@
-
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISSN 圖書館系統 - 手機架設版</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; color: #333333; }
+        .page-container { max-width: 1100px; margin: 20px auto; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; }
+        header { background-color: #1a365d; color: #ffffff; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #2b6cb0; flex-wrap: wrap; gap: 10px; }
+        .brand-title { font-size: 20px; font-weight: bold; }
+        .brand-subtitle { font-size: 11px; color: #bee3f8; margin-top: 2px; }
+        .user-status-area { display: flex; align-items: center; gap: 10px; }
+        .user-info { font-size: 13px; color: #e2e8f0; }
+        .login-btn, .logout-btn { color: #ffffff; background-color: #2b6cb0; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; }
+        .logout-btn { background-color: #e53e3e; }
+        .borrow-section { background-color: #ebf8ff; padding: 20px; border-bottom: 1px solid #bee3f8; display: none; }
+        .borrow-title { font-size: 15px; font-weight: bold; color: #2b6cb0; margin-bottom: 10px; }
+        .borrow-flex { display: flex; gap: 10px; }
+        .borrow-input { flex: 1; padding: 10px; border: 2px solid #90cdf4; border-radius: 6px; font-size: 14px; }
+        .borrow-btn { background-color: #3182ce; color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .admin-dashboard { background: #fffaf0; border-bottom: 3px dashed #dd6b20; padding: 20px; display: none; }
+        .admin-main-title { color: #dd6b20; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 768px) { .admin-grid { grid-template-columns: 1fr 1fr; } }
+        .admin-card { background: white; border: 1px solid #feebc8; border-radius: 6px; padding: 15px; }
+        .card-title { font-size: 15px; font-weight: bold; color: #c05621; margin-bottom: 12px; }
+        .form-row { margin-bottom: 10px; }
+        .form-row label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #4a5568; }
+        .form-inline { display: flex; gap: 10px; align-items: center; }
+        .form-inline input { width: 60px; padding: 4px; border: 1px solid #cbd5e0; border-radius: 4px; text-align: center; }
+        .search-section { background-color: #ffffff; padding: 20px; border-bottom: 1px solid #e2e8f0; }
+        .search-title { font-size: 15px; font-weight: bold; color: #2d3748; margin-bottom: 10px; }
+        .search-input { width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 15px; outline: none; }
+        .main-content { background-color: #ffffff; padding: 20px; min-height: 300px; }
+        .section-heading { font-size: 16px; font-weight: bold; color: #1a365d; margin-bottom: 20px; border-left: 5px solid #2b6cb0; padding-left: 10px; }
+        .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .book-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
+        .book-cover-placeholder { width: 100%; height: 120px; background-color: #edf2f7; border-radius: 4px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #a0aec0; }
+        .book-title { font-size: 14px; font-weight: bold; color: #2d3748; margin-bottom: 4px; text-align: left; height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .book-author { font-size: 12px; color: #718096; text-align: left; margin-bottom: 6px; }
+        .status-badge { display: inline-block; padding: 2px 6px; font-size: 11px; border-radius: 4px; font-weight: bold; }
+        .status-available { background-color: #c6f6d5; color: #22543d; }
+        .status-borrowed { background-color: #fed7d7; color: #742a2a; }
+        .delete-book-btn { position: absolute; top: 6px; right: 6px; background: rgba(229, 62, 62, 0.1); color: #e53e3e; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        .btn-primary { background: #dd6b20; color: white; width: 100%; }
+        .btn-secondary { background: #e2e8f0; color: #4a5568; }
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 360px; }
+        .account-hint { font-size: 11px; color: #718096; margin-top: 12px; background: #f7fafc; padding: 6px; border-radius: 4px; }
+        footer { background-color: #2d3748; color: #cbd5e0; padding: 20px; font-size: 13px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="page-container">
+    <header>
+        <div>
+            <div class="brand-title">ISSN 圖書館系統</div>
+            <div class="brand-subtitle">Mobile Web Library System</div>
+        </div>
+        <div class="user-status-area">
+            <span class="user-info" id="userInfo">請登入系統</span>
+            <button class="login-btn" id="loginBtn" onclick="toggleModal(true)">登入</button>
+            <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none;">登出</button>
+        </div>
+    </header>
+    <div class="admin-dashboard" id="adminDashboard">
+        <div class="admin-main-title">⚙️ 管理員後台</div>
+        <div class="admin-grid">
+            <div class="admin-card">
+                <div class="card-title">➕ 新增期刊書籍</div>
+                <div class="form-row"><label>名稱</label><input type="text" class="search-input" id="newBookTitle" placeholder="輸入名稱" style="padding: 8px;"></div>
+                <div class="form-row"><label>ISSN / ISBN 條碼</label><input type="text" class="search-input" id="newBookCode" placeholder="輸入條碼" style="padding: 8px;"></div>
+                <button class="btn btn-primary" onclick="addNewBook()">儲存上架</button>
+            </div>
+            <div class="admin-card">
+                <div class="card-title">🔧 圖書館設定</div>
+                <div class="form-row"><div class="form-inline"><label>借閱天數：</label><input type="number" id="cfgDays" value="30"> 天</div></div>
+                <div class="form-row"><div class="form-inline"><label>借閱上限：</label><input type="number" id="cfgMax" value="5"> 冊</div></div>
+                <div class="form-row" style="margin-top: 15px;">
+                    <button class="btn btn-secondary" onclick="saveSettings()">套用</button>
+                    <button class="btn" onclick="resetSystemData()" style="background: #fed7d7; color: #9b2c2c; margin-left: 5px;">恢復預設</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="borrow-section" id="borrowSection">
+        <div class="borrow-title">🔑 <span id="borrowActionText">條碼快速借書</span></div>
+        <div class="borrow-flex">
+            <input type="text" class="borrow-input" id="barcodeInput" placeholder="點此輸入或掃描條碼...">
+            <button class="borrow-btn" onclick="processBarcode()">確認</button>
+        </div>
+    </div>
+    <div class="search-section">
+        <div class="search-title">🔍 館藏即時搜尋</div>
+        <input type="text" class="search-input" id="searchInput" oninput="filterBooks()" placeholder="輸入關鍵字篩選...">
+    </div>
+    <div class="main-content">
+        <div class="section-heading">展示中館藏</div>
+        <div class="books-grid" id="booksGrid"></div>
+    </div>
+    <footer><div><strong>ISSN 數位圖書館系統 (手機架設版)</strong></div></footer>
+</div>
+<div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+        <h3 style="margin-top:0;text-align:center;">系統登入</h3>
+        <div class="form-row"><label>帳號</label><input type="text" class="search-input" id="username" placeholder="student 或 admin" style="padding:8px;"></div>
+        <div class="form-row"><label>密碼</label><input type="password" class="search-input" id="password" value="123456" style="padding:8px;"></div>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-primary" onclick="login()" style="background: #2b6cb0;">登入</button>
+            <button class="btn btn-secondary" onclick="toggleModal(false)" style="width: 100%;">取消</button>
+        </div>
+        <div class="account-hint"><strong>💡 測試帳號：</strong><br>• 學生：<code>student</code><br>• 管理員：<code>admin</code></div>
+    </div>
+</div>
+<script>
+    const defaultBooks = [
+        { title: "永續發展與環境期刊", code: "2076-9342", status: "可借閱", borrower: null },
+        { title: "全球經濟學學報", code: "1019-5289", status: "可借閱", borrower: null },
+        { title: "數位時代資訊科學半月刊", code: "1550-1234", status: "已借出", borrower: "張同學" }
+    ];
+    let booksData = JSON.parse(localStorage.getItem('lib_books')) || [...defaultBooks];
+    let currentUser = null;
+    function renderBooks(dataToRender = booksData) {
+        const grid = document.getElementById('booksGrid'); grid.innerHTML = '';
+        if (dataToRender.length === 0) { grid.innerHTML = '<div style="color: #a0aec0; text-align: center; padding: 20px; width:100%;">無資料</div>'; return; }
+        dataToRender.forEach((book, index) => {
+            const isAvailable = book.status === "可借閱";
+            const badgeClass = isAvailable ? 'status-available' : 'status-borrowed';
+            const displayStatus = isAvailable ? '可借閱' : `已借 (${book.borrower})`;
+            const deleteBtnStyle = (currentUser && currentUser.role === 'admin') ? 'display: flex;' : 'display: none;';
+            grid.innerHTML += `<div class="book-card"><button class="delete-book-btn" style="${deleteBtnStyle}" onclick="deleteBook(${index})">×</button><div class="book-cover-placeholder">📖</div><div class="book-title">${book.title}</div><div class="book-author">ISSN: ${book.code}</div><span class="status-badge ${badgeClass}">${displayStatus}</span></div>`;
+        });
+    }
+    function filterBooks() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+        renderBooks(booksData.filter(b => b.title.toLowerCase().includes(keyword) || b.code.toLowerCase().includes(keyword)));
+    }
+    function addNewBook() {
+        const t = document.getElementById('newBookTitle').value.trim(); const c = document.getElementById('newBookCode').value.trim();
+        if (!t || !c) { alert('請填寫完整！'); return; }
+        if (booksData.some(b => b.code === c)) { alert('條碼重複！'); return; }
+        booksData.push({ title: t, code: c, status: "可借閱", borrower: null }); saveData(); renderBooks();
+        document.getElementById('newBookTitle').value = ''; document.getElementById('newBookCode').value = ''; alert('上架成功！');
+    }
+    function deleteBook(i) { if (confirm('確定移除？')) { booksData.splice(i, 1); saveData(); renderBooks(); } }
+    function saveSettings() { alert('設定已套用！'); }
+    function resetSystemData() { if (confirm('確定重設？')) { booksData = [...defaultBooks]; saveData(); renderBooks(); } }
+    function saveData() { localStorage.setItem('lib_books', JSON.stringify(booksData)); }
+    function toggleModal(s) { document.getElementById('loginModal').style.display = s ? 'flex' : 'none'; }
+    function login() {
+        const u = document.getElementById('username').value.trim();
+        if (u === 'student') currentUser = { name: '張同學', role: 'student' };
+        else if (u === 'admin') currentUser = { name: '管理員', role: 'admin' };
+        else { alert('帳號錯誤'); return; }
+        document.getElementById('userInfo').innerText = currentUser.name;
+        document.getElementById('loginBtn').style.display = 'none'; document.getElementById('logoutBtn').style.display = 'block';
+        document.getElementById('borrowSection').style.display = 'block';
+        document.getElementById('adminDashboard').style.display = currentUser.role === 'admin' ? 'block' : 'none';
+        toggleModal(false); renderBooks();
+    }
+    function logout() { currentUser = null; document.getElementById('userInfo').innerText = '請登入'; document.getElementById('loginBtn').style.display = 'block'; document.getElementById('logoutBtn').style.display = 'none'; document.getElementById('borrowSection').style.display = 'none'; document.getElementById('adminDashboard').style.display = 'none'; renderBooks(); }
+    function processBarcode() {
+        const b = document.getElementById('barcodeInput').value.trim(); if (!b) return;
+        const book = booksData.find(x => x.code === b);
+        if (!book) { alert('找不到此條碼'); document.getElementById('barcodeInput').value = ''; return; }
+        if (currentUser.role === 'admin') { book.status = "可借閱"; book.borrower = null; alert('已強制收回書籍'); }
+        else {
+            if (book.status === "可借閱") { book.status = "已借出"; book.borrower = currentUser.name; alert('借書成功！'); }
+            else if (book.borrower === currentUser.name) { book.status = "可借閱"; book.borrower = null; alert('還書成功！'); }
+            else { alert('此書已被他人借走'); }
+        }
+        saveData(); renderBooks(); document.getElementById('barcodeInput').value = '';
+    }
+    renderBooks();
+</script>
+</body>
+  </html>
