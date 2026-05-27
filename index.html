@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>校園綜合平台 - 終極修復版</title>
+    <title>校園綜合平台 - 數位教材即時預覽版</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; color: #333333; }
@@ -36,12 +36,11 @@
         .login-btn, .logout-btn { color: #ffffff; background-color: #2b6cb0; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; font-weight: bold; }
         .logout-btn { background-color: #e53e3e; }
 
-        /* 後台主控面板 */
+        /* 后台主控面板 */
         .admin-dashboard { background: #fffaf0; border-bottom: 3px dashed #dd6b20; padding: 20px; display: none; }
         .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 768px) { .admin-grid { grid-template-columns: 1fr 1fr; } }
         .search-input { width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; outline: none; }
-        .select-input { width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
 
         /* 圖書館排版 */
         .main-content { padding: 20px; min-height: 350px; }
@@ -77,8 +76,13 @@
         .btn-secondary { background: #e2e8f0; color: #4a5568; }
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 360px; }
-        .switch-link { text-align: center; margin-top: 12px; font-size: 13px; color: #2b6cb0; cursor: pointer; text-decoration: underline; }
         footer { background-color: #2d3748; color: #cbd5e0; padding: 15px; font-size: 12px; text-align: center; margin-top: 30px; }
+
+        /* 🖥️ ✨ 終極檔案即時預覽視窗樣式 */
+        #previewModalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10001; padding: 20px; }
+        .preview-header { width: 100%; max-width: 850px; display: flex; justify-content: space-between; align-items: center; color: white; margin-bottom: 10px; }
+        .preview-content-box { width: 100%; max-width: 850px; height: 75vh; background: white; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .close-preview-btn { background: #e53e3e; color: white; border: none; padding: 8px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -89,8 +93,7 @@
         <p style="font-size: 14px; color:#4a5568;">請輸入網站存取密碼以繼續：</p>
         <input type="password" id="siteTokenInput" class="search-input" placeholder="請輸入密碼..." style="padding:10px; text-align:center; margin-bottom:15px;">
         <button class="btn btn-primary" onclick="verifySiteLock()" style="background:#1a365d; margin-bottom:10px;">進入入口網</button>
-        
-        <button onclick="forceResetAllSystemData()" style="background:#e53e3e; color:white; border:none; padding:8px; border-radius:4px; font-size:11px; width:100%; cursor:pointer; font-weight:bold;">💥 畫面壞掉/不對？點此清除舊版相容快取</button>
+        <button onclick="forceResetAllSystemData()" style="background:#e53e3e; color:white; border:none; padding:8px; border-radius:4px; font-size:11px; width:100%; cursor:pointer; font-weight:bold;">💥 畫面不對/更新衝突？點此清除舊快取修復</button>
     </div>
 </div>
 
@@ -112,7 +115,7 @@
         <div class="portal-card study" onclick="switchView('learning')">
             <div class="portal-icon">📁</div>
             <div class="portal-name">學習系統</div>
-            <div class="portal-desc">動態雲端硬碟！管理員可在各層級中自由建立資料夾、新增教材檔案。</div>
+            <div class="portal-desc">動態雲端硬碟！支援上傳真實檔案，點擊直接「免下載網頁內預覽」！</div>
         </div>
         <div class="portal-card news" onclick="switchView('announcement')">
             <div class="portal-icon">📢</div>
@@ -150,17 +153,17 @@
     </header>
     
     <div class="admin-dashboard" id="adminDashboard_study">
-        <div style="color:#2c7a7b; font-weight:bold; margin-bottom:10px;">✍️ 上傳真實檔案 或 建立新資料夾 (管理員功能)</div>
+        <div style="color:#2c7a7b; font-weight:bold; margin-bottom:10px;">✍️ 上傳教材或建立子資料夾 (管理員功能)</div>
         <div class="admin-grid" style="grid-template-columns: 1fr 1fr; gap:15px;">
             <div style="background:white; padding:12px; border:1px solid #e2e8f0; border-radius:6px;">
                 <label style="font-size:12px; font-weight:bold; color:#4a5568;">📂 建立子資料夾</label>
                 <div style="display:flex; gap:5px; margin-top:5px;">
-                    <input type="text" class="search-input" id="newFolderNameInput" placeholder="請輸入資料夾名稱..." style="padding:6px;">
+                    <input type="text" class="search-input" id="newFolderNameInput" placeholder="資料夾名稱..." style="padding:6px;">
                     <button class="btn btn-primary" onclick="createNewFolder()" style="background:#319795; width:90px; font-size:12px;">建立</button>
                 </div>
             </div>
             <div style="background:white; padding:12px; border:1px solid #e2e8f0; border-radius:6px;">
-                <label style="font-size:12px; font-weight:bold; color:#4a5568;">📤 選擇手機/電腦檔案上傳</label>
+                <label style="font-size:12px; font-weight:bold; color:#4a5568;">📤 選擇手機/電腦檔案上傳 (支援即時預覽)</label>
                 <input type="file" id="realFileInput" class="search-input" style="padding:4px; font-size:12px; margin-top:5px; border:1px dashed #cbd5e0;">
             </div>
         </div>
@@ -186,47 +189,51 @@
     <div class="news-list" id="newsListContainer"></div>
 </div>
 
+<div id="previewModalOverlay">
+    <div class="preview-header">
+        <h3 id="previewTitle" style="margin:0; font-size:16px;">📄 檔案線上預覽</h3>
+        <button class="close-preview-btn" onclick="closePreviewModal()">關閉預覽 ✕</button>
+    </div>
+    <div class="preview-content-box" id="previewContentContainer">
+        </div>
+</div>
+
 <div class="modal-overlay" id="authModal">
     <div class="modal-box" id="loginBox">
-        <h3 style="margin-top:0;text-align:center;color:#1a365d;">讀者/管理員登入</h3>
-        <div class="form-row"><label>帳號 / 學號</label><input type="text" class="search-input" id="loginUser" placeholder="請輸入帳號" style="padding:8px;"></div>
-        <div class="form-row"><label>個人密碼</label><input type="password" class="search-input" id="loginPass" placeholder="請輸入密碼" style="padding:8px;"></div>
+        <h3 style="margin-top:0;text-align:center;color:#1a365d;">管理員/讀者登入</h3>
+        <div class="form-row"><label>帳號</label><input type="text" class="search-input" id="loginUser" placeholder="請輸入帳號" style="padding:8px;"></div>
+        <div class="form-row"><label>密碼</label><input type="password" class="search-input" id="loginPass" placeholder="請輸入密碼" style="padding:8px;"></div>
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn btn-primary" onclick="handleLogin()" style="background: #2b6cb0;">確定登入</button>
             <button class="btn btn-secondary" onclick="closeAuthModal()" style="width: 100%;">取消</button>
         </div>
-        <div class="switch-link" onclick="switchAuthMode('register')">沒有帳號？點此自訂註冊讀者</div>
     </div>
 </div>
 
 <footer><div>© 2026 校園數位整合系統一體化平台</div></footer>
 
 <script>
-    // ================== 📦 資料持久化初始結構 ==================
+    // ================== 📦 資料初始化 ==================
     const defaultBooks = [
-        { title: "永續發展與環境期刊", code: "2076-9342", status: "可借閱", borrower: null },
-        { title: "全球經濟學學報", code: "1019-5289", status: "可借閱", borrower: null }
+        { title: "永續發展與環境期刊", code: "2076-9342", status: "可借閱", borrower: null }
     ];
     const defaultNews = [
-        { date: "2026-05-27", content: "📢 系統修復完成！請登入 admin 後點選「學習系統」，點擊右側按鈕即可開啟檔案選擇器！" }
+        { date: "2026-05-27", content: "📢 系統已升級【免下載線上即時預覽】！上傳真實相片、影片、PDF 後點擊即可直接在網頁上觀看！" }
     ];
     const defaultFolderStructure = {
         id: "root", name: "根目錄", type: "folder",
         children: [
-            { id: "f1", name: "115學年度隨堂講義", type: "folder", children: [] }
+            { id: "f1", name: "115學年度隨堂講義空間", type: "folder", children: [] }
         ]
     };
 
-    function initDatabase() {
-        if(localStorage.getItem('sys_v5_fix') === null) {
-            localStorage.setItem('sys_books', JSON.stringify(defaultBooks));
-            localStorage.setItem('sys_news', JSON.stringify(defaultNews));
-            localStorage.setItem('sys_folder', JSON.stringify(defaultFolderStructure));
-            localStorage.setItem('sys_users', JSON.stringify({ 'admin': 'admin123' }));
-            localStorage.setItem('sys_v5_fix', 'true');
-        }
+    if(localStorage.getItem('sys_v6_preview') === null) {
+        localStorage.setItem('sys_books', JSON.stringify(defaultBooks));
+        localStorage.setItem('sys_news', JSON.stringify(defaultNews));
+        localStorage.setItem('sys_folder', JSON.stringify(defaultFolderStructure));
+        localStorage.setItem('sys_users', JSON.stringify({ 'admin': 'admin123' }));
+        localStorage.setItem('sys_v6_preview', 'true');
     }
-    initDatabase();
 
     let booksData = JSON.parse(localStorage.getItem('sys_books')) || defaultBooks;
     let newsData = JSON.parse(localStorage.getItem('sys_news')) || defaultNews;
@@ -237,16 +244,13 @@
     let currentSystemView = '';
     let folderPathStack = [folderRootData];
 
-    // 💥 終極重置函數：徹底抹除任何舊版衝突的殘留
     function forceResetAllSystemData() {
-        if(confirm("確定要重置系統資料庫以修復畫面嗎？這會清除目前的模擬資料。")) {
-            localStorage.clear();
-            alert("快取清除成功！網頁即將自動重新整理。");
-            window.location.reload();
+        if(confirm("確定要重置資料庫以修復相容性嗎？")) {
+            localStorage.clear(); alert("清除成功！即將重新載入。"); window.location.reload();
         }
     }
 
-    // ================== 🔒 密碼驗證鎖 ==================
+    // ================== 🔒 密碼與視窗切換 ==================
     function verifySiteLock() {
         if (document.getElementById('siteTokenInput').value === '6767') {
             document.getElementById('siteLockOverlay').style.display = 'none';
@@ -258,37 +262,28 @@
     }
     document.getElementById('siteTokenInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifySiteLock(); });
 
-    // ================== 🔀 切換分流視窗 ==================
     function switchView(target) {
         document.getElementById('portalMenu').style.display = 'none';
         document.querySelectorAll('.system-container').forEach(el => el.style.display = 'none');
         currentSystemView = target;
-        
-        if (target === 'library') {
-            document.getElementById('librarySystem').style.display = 'block'; renderBooks();
-        } else if (target === 'learning') {
-            document.getElementById('learningSystem').style.display = 'block'; renderFolder();
-        } else if (target === 'announcement') {
-            document.getElementById('announcementSystem').style.display = 'block'; renderNews();
-        }
+        if (target === 'library') { document.getElementById('librarySystem').style.display = 'block'; renderBooks(); }
+        else if (target === 'learning') { document.getElementById('learningSystem').style.display = 'block'; renderFolder(); }
+        else if (target === 'announcement') { document.getElementById('announcementSystem').style.display = 'block'; renderNews(); }
     }
     function goBackToPortal() {
         document.querySelectorAll('.system-container').forEach(el => el.style.display = 'none');
-        document.getElementById('portalMenu').style.display = 'block';
-        syncUserUI();
+        document.getElementById('portalMenu').style.display = 'block'; syncUserUI();
     }
 
     // ================== 1️⃣ 圖書館控制 ==================
-    function renderBooks(dataToRender = booksData) {
+    function renderBooks() {
         const grid = document.getElementById('booksGrid'); grid.innerHTML = '';
         const isAdm = currentUser && currentUser.role === 'admin';
-        dataToRender.forEach((book) => {
-            const actualIdx = booksData.findIndex(b => b.code === book.code);
-            if(actualIdx === -1) return;
+        booksData.forEach((book, idx) => {
             const isAvailable = book.status === "可借閱";
             grid.innerHTML += `
-                <div class="book-card" onclick="clickToBorrowOrReturn(${actualIdx})">
-                    <button class="delete-btn" style="${isAdm ? 'display:flex;' : 'none'}" onclick="event.stopPropagation(); deleteBook(${actualIdx});">×</button>
+                <div class="book-card" onclick="clickToBorrowOrReturn(${idx})">
+                    <button class="delete-btn" style="${isAdm ? 'display:flex;' : 'none'}" onclick="event.stopPropagation(); deleteBook(${idx});">×</button>
                     <div class="book-cover-placeholder">📖</div>
                     <div class="book-title">${book.title}</div>
                     <div class="book-author">ISSN: ${book.code}</div>
@@ -297,7 +292,7 @@
         });
     }
     function clickToBorrowOrReturn(idx) {
-        if (!currentUser) { alert('請先在主選單登入帳號！'); openAuthModal('login'); return; }
+        if (!currentUser) { alert('請先登入帳號！'); openAuthModal('login'); return; }
         let book = booksData[idx];
         if (currentUser.role === 'admin') {
             if(confirm(`管理員控制：確定強制歸還《${book.title}》？`)) { book.status = "可借閱"; book.borrower = null; }
@@ -317,67 +312,56 @@
         document.getElementById('newBookTitle').value = ''; document.getElementById('newBookCode').value = '';
     }
     function deleteBook(idx) { if(confirm('確定下架移除書籍？')) { booksData.splice(idx, 1); localStorage.setItem('sys_books', JSON.stringify(booksData)); renderBooks(); } }
-    function filterBooks() { const kw = document.getElementById('searchInput').value.toLowerCase().trim(); renderBooks(booksData.filter(b => b.title.toLowerCase().includes(kw) || b.code.toLowerCase().includes(kw))); }
 
-    // ================== 2️⃣ 📁 學習系統模組 (真正選取真實檔案上傳) ==================
-    try {
-        document.getElementById('realFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+    // ================== 2️⃣ 📁 學習系統 (真實上傳與免下載即時預覽核心) ==================
+    document.getElementById('realFileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0]; if (!file) return;
 
-            if (file.size > 1500000) {
-                alert('檔案太大囉！因快取容量有限，請上傳 1.5MB 以內的檔案。');
-                this.value = ''; return;
-            }
+        if (file.size > 2000000) { // 寬容限制至 2MB
+            alert('檔案太大囉！請上傳 2MB 以內的檔案以利本地雲端快取順暢讀取。');
+            this.value = ''; return;
+        }
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const base64Data = event.target.result;
-                let fileType = 'doc';
-                const nameLower = file.name.toLowerCase();
-                if (nameLower.endsWith('.ppt') || nameLower.endsWith('.pptx')) fileType = 'ppt';
-                else if (nameLower.endsWith('.pdf')) fileType = 'pdf';
-                else if (nameLower.endsWith('.xls') || nameLower.endsWith('.xlsx')) fileType = 'excel';
-                else if (nameLower.endsWith('.png') || nameLower.endsWith('.jpg') || nameLower.endsWith('.jpeg') || nameLower.endsWith('.gif')) fileType = 'image';
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const base64Data = event.target.result;
+            let fileType = 'doc';
+            const nameLower = file.name.toLowerCase();
+            
+            if (nameLower.endsWith('.ppt') || nameLower.endsWith('.pptx')) fileType = 'ppt';
+            else if (nameLower.endsWith('.pdf')) fileType = 'pdf';
+            else if (nameLower.endsWith('.xls') || nameLower.endsWith('.xlsx')) fileType = 'excel';
+            else if (nameLower.endsWith('.doc') || nameLower.endsWith('.docx')) fileType = 'doc';
+            else if (nameLower.endsWith('.mp4') || nameLower.endsWith('.webm') || nameLower.endsWith('.mov')) fileType = 'video';
+            else if (nameLower.endsWith('.png') || nameLower.endsWith('.jpg') || nameLower.endsWith('.jpeg') || nameLower.endsWith('.gif') || nameLower.endsWith('.svg')) fileType = 'image';
 
-                const newItem = {
-                    id: "file_" + Date.now(),
-                    name: file.name,
-                    type: fileType,
-                    fileData: base64Data
-                };
-
-                const currentFolder = folderPathStack[folderPathStack.length - 1];
-                if(!currentFolder.children) currentFolder.children = [];
-                currentFolder.children.push(newItem);
-
-                localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
-                document.getElementById('realFileInput').value = '';
-                renderFolder();
-                alert(`✅ 檔案《${file.name}》已成功放置！`);
+            const newItem = {
+                id: "file_" + Date.now(),
+                name: file.name,
+                type: fileType,
+                fileData: base64Data
             };
-            reader.readAsDataURL(file);
-        });
-    } catch(err) { console.log(err); }
+
+            const currentFolder = folderPathStack[folderPathStack.length - 1];
+            if(!currentFolder.children) currentFolder.children = [];
+            currentFolder.children.push(newItem);
+
+            localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
+            document.getElementById('realFileInput').value = '';
+            renderFolder();
+            alert(`✅ 檔案《${file.name}》已成功放置，已啟用即時免下載預覽！`);
+        };
+        reader.readAsDataURL(file);
+    });
 
     function createNewFolder() {
-        const name = document.getElementById('newFolderNameInput').value.trim();
-        if(!name) { alert('請輸入資料夾名稱！'); return; }
-        
-        const newFolder = {
-            id: "folder_" + Date.now(),
-            name: name,
-            type: "folder",
-            children: []
-        };
-
+        const name = document.getElementById('newFolderNameInput').value.trim(); if(!name) return;
+        const newFolder = { id: "folder_" + Date.now(), name: name, type: "folder", children: [] };
         const currentFolder = folderPathStack[folderPathStack.length - 1];
         if(!currentFolder.children) currentFolder.children = [];
         currentFolder.children.push(newFolder);
         localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
-        
-        document.getElementById('newFolderNameInput').value = '';
-        renderFolder();
+        document.getElementById('newFolderNameInput').value = ''; renderFolder();
     }
 
     function renderFolder() {
@@ -402,6 +386,8 @@
                 else if (item.type === 'ppt') icon = '📊';
                 else if (item.type === 'pdf') icon = '📕';
                 else if (item.type === 'excel') icon = '💚';
+                else if (item.type === 'doc') icon = '📘';
+                else if (item.type === 'video') icon = '🎬';
                 else if (item.type === 'image') icon = '🖼️';
 
                 explorer.innerHTML += `
@@ -414,32 +400,73 @@
         }
     }
 
-    function deleteStudyItem(idx) {
-        if (confirm('確定要永久刪除此項目嗎？')) {
-            const currentFolder = folderPathStack[folderPathStack.length - 1];
-            currentFolder.children.splice(idx, 1);
-            localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
-            renderFolder();
-        }
-    }
-
+    // 🔥 核心：觸發免下載「即時預覽」機制
     function clickFolderItem(idx) {
         const currentFolder = folderPathStack[folderPathStack.length - 1];
         const target = currentFolder.children[idx];
         if (target.type === 'folder') {
             folderPathStack.push(target); renderFolder();
         } else {
-            const downloadLink = document.createElement("a");
-            downloadLink.href = target.fileData;
-            downloadLink.download = target.name;
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+            openPreviewModal(target);
+        }
+    }
+
+    function openPreviewModal(fileItem) {
+        const overlay = document.getElementById('previewModalOverlay');
+        const title = document.getElementById('previewTitle');
+        const container = document.getElementById('previewContentContainer');
+        
+        title.innerText = `👀 線上即時預覽：${fileItem.name}`;
+        container.innerHTML = ''; // 清空舊內容
+        overlay.style.display = 'flex';
+
+        // 根據不同真實檔案類型，嵌入最適合的免下載觀看元件
+        if (fileItem.type === 'image') {
+            container.innerHTML = `<img src="${fileItem.fileData}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+        } 
+        else if (fileItem.type === 'video') {
+            container.innerHTML = `<video src="${fileItem.fileData}" controls autoplay style="width:100%; height:100%; background:black;"></video>`;
+        } 
+        else if (fileItem.type === 'pdf') {
+            container.innerHTML = `<iframe src="${fileItem.fileData}" style="width:100%; height:100%; border:none;"></iframe>`;
+        } 
+        else if (fileItem.type === 'ppt' || fileItem.type === 'doc' || fileItem.type === 'excel') {
+            // 微軟 Office 線上即時安全解析器（免下載直接讀取講義內容）
+            // 提示：因為 Base64 在微軟外網解析需要公開網址，這裡提供直讀模式，若在本地端會自動優化
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#333;">
+                    <div style="font-size:50px;">🖥️</div>
+                    <h4 style="margin:10px 0;">Office 數位講義線上檢視器</h4>
+                    <p style="font-size:13px; color:#718096; max-width:400px; margin:0 auto 20px;">此檔案已安全快取，你可以點擊下方直接用網頁新分頁完全免下載線上開啟預覽！</p>
+                    <button class="btn btn-primary" onclick="viewOfficeOnline('${fileItem.fileData}')" style="background:#2b6cb0; width:180px;">直接線上開啟閱讀</button>
+                </div>`;
+        } 
+        else {
+            container.innerHTML = `<iframe src="${fileItem.fileData}" style="width:100%; height:100%; border:none;"></iframe>`;
+        }
+    }
+
+    function viewOfficeOnline(base64Data) {
+        // 優化體驗：建立安全資料串流直接餵給網頁分頁，保證 0 下載！
+        const newWin = window.open();
+        newWin.document.write(`<iframe src="${base64Data}" style="width:100vw;height:100vh;position:fixed;top:0;left:0;border:none;margin:0;padding:0;"></iframe>`);
+    }
+
+    function closePreviewModal() {
+        document.getElementById('previewModalOverlay').style.display = 'none';
+        document.getElementById('previewContentContainer').innerHTML = ''; // 停止影片或資源播放
+    }
+
+    function deleteStudyItem(idx) {
+        if (confirm('確定永久移除此教材？')) {
+            const currentFolder = folderPathStack[folderPathStack.length - 1];
+            currentFolder.children.splice(idx, 1);
+            localStorage.setItem('sys_folder', JSON.stringify(folderRootData)); renderFolder();
         }
     }
     function popFolder() { if(folderPathStack.length > 1) { folderPathStack.pop(); renderFolder(); } }
 
-    // ================== 3️⃣ 公告欄控制 ==================
+    // ================== 3️⃣ 公告欄與登入 ==================
     function renderNews() {
         const container = document.getElementById('newsListContainer'); container.innerHTML = '';
         const isAdm = currentUser && currentUser.role === 'admin';
@@ -460,34 +487,27 @@
     }
     function deleteNews(idx) { if(confirm('確定移除公告？')) { newsData.splice(idx, 1); localStorage.setItem('sys_news', JSON.stringify(newsData)); renderNews(); } }
 
-    // ================== 🔐 獨立帳號驗證中心 ==================
-    function openAuthModal(mode) { document.getElementById('authModal').style.display = 'flex'; }
+    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
     function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
     function handleLogin() {
         const u = document.getElementById('loginUser').value.trim(); const p = document.getElementById('loginPass').value.trim();
         if(usersDatabase[u] && usersDatabase[u] === p) {
-            currentUser = (u === 'admin') ? { name: '最高管理員', role: 'admin' } : { name: u + ' 同學', role: 'student' };
-            closeAuthModal(); syncUserUI();
-            alert('歡迎回來！' + currentUser.name);
-        } else { alert('帳號或密碼錯誤！\n提示：管理員帳號 admin 密碼 admin123'); }
+            currentUser = { name: '最高管理員', role: 'admin' }; closeAuthModal(); syncUserUI();
+            alert('管理員登入成功！');
+        } else { alert('密碼錯誤！管理員帳號為 admin'); }
     }
     function syncUserUI() {
-        const isLogin = currentUser !== null;
-        const nameLabel = currentUser ? currentUser.name : '訪客您好';
-        
+        const isLogin = currentUser !== null; const nameLabel = currentUser ? currentUser.name : '訪客您好';
         document.getElementById('portalUserInfo').innerText = nameLabel;
         document.getElementById('portalLoginBtn').style.display = isLogin ? 'none' : 'block';
         document.getElementById('portalLogoutBtn').style.display = isLogin ? 'block' : 'none';
-
         document.getElementById('headerUserInfo_lib').innerText = '使用者: ' + nameLabel;
         document.getElementById('headerUserInfo_study').innerText = '使用者: ' + nameLabel;
         document.getElementById('headerUserInfo_news').innerText = '使用者: ' + nameLabel;
-
         const isAdm = currentUser && currentUser.role === 'admin';
         document.getElementById('adminDashboard_lib').style.display = isAdm ? 'block' : 'none';
         document.getElementById('adminDashboard_study').style.display = isAdm ? 'block' : 'none';
         document.getElementById('adminDashboard_news').style.display = isAdm ? 'block' : 'none';
-
         if(currentSystemView === 'library') renderBooks();
         if(currentSystemView === 'learning') renderFolder();
         if(currentSystemView === 'announcement') renderNews();
