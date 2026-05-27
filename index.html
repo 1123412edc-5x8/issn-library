@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>校園綜合平台 - 三合一系統</title>
+    <title>校園綜合平台 - 動態管理版</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; color: #333333; }
@@ -12,18 +12,19 @@
         #siteLockOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #1a365d; display: flex; justify-content: center; align-items: center; z-index: 9999; color: white; }
         .lock-box { background: white; color: #333; padding: 30px; border-radius: 8px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
 
-        /* 🔀 分流主選單畫面 */
-        #portalMenu { max-width: 900px; margin: 60px auto; padding: 20px; display: none; text-align: center; }
-        .portal-title { color: #1a365d; font-size: 28px; font-weight: bold; margin-bottom: 30px; }
-        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-top: 20px; }
-        .portal-card { background: white; padding: 40px 20px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border-top: 6px solid #2b6cb0; }
+        /* 🔀 分流主選單門戶 */
+        #portalMenu { max-width: 900px; margin: 40px auto; padding: 20px; display: none; }
+        .portal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .portal-title { color: #1a365d; font-size: 26px; font-weight: bold; margin: 0; }
+        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; }
+        .portal-card { background: white; padding: 40px 20px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border-top: 6px solid #2b6cb0; text-align: center; }
         .portal-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
         .portal-card.lib { border-top-color: #2b6cb0; }
         .portal-card.study { border-top-color: #319795; }
         .portal-card.news { border-top-color: #dd6b20; }
-        .portal-icon { font-size: 48px; margin-bottom: 15px; }
-        .portal-name { font-size: 20px; font-weight: bold; color: #2d3748; }
-        .portal-desc { font-size: 13px; color: #718096; margin-top: 8px; }
+        .portal-icon { font-size: 44px; margin-bottom: 15px; }
+        .portal-name { font-size: 18px; font-weight: bold; color: #2d3748; }
+        .portal-desc { font-size: 13px; color: #718096; margin-top: 8px; line-height: 1.4; }
 
         /* 通用主容器與導覽 */
         .system-container { max-width: 1100px; margin: 20px auto; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; display: none; }
@@ -31,10 +32,11 @@
         .nav-back-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .nav-back-btn:hover { background: rgba(255,255,255,0.3); }
         .user-status-area { display: flex; align-items: center; gap: 10px; }
-        .login-btn, .logout-btn { color: #ffffff; background-color: #2b6cb0; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; }
+        .user-info { font-size: 13px; color: #e2e8f0; }
+        .login-btn, .logout-btn { color: #ffffff; background-color: #2b6cb0; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; font-weight: bold; }
         .logout-btn { background-color: #e53e3e; }
 
-        /* 1️⃣ 圖書館樣式優化 */
+        /* 後台主控面板 */
         .admin-dashboard { background: #fffaf0; border-bottom: 3px dashed #dd6b20; padding: 20px; display: none; }
         .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 768px) { .admin-grid { grid-template-columns: 1fr 1fr; } }
@@ -42,34 +44,37 @@
         .form-row { margin-bottom: 10px; }
         .form-row label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #4a5568; }
         .search-input { width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; outline: none; }
+        .select-input { width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 14px; background: white; }
+
+        /* 1️⃣ 圖書館排版 */
         .main-content { padding: 20px; min-height: 350px; }
         .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
         .book-card { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); position: relative; cursor: pointer; transition: transform 0.1s; }
-        .book-card:hover { transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .book-card:hover { transform: scale(1.02); }
         .book-cover-placeholder { width: 100%; height: 110px; background-color: #edf2f7; border-radius: 4px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
         .book-title { font-size: 14px; font-weight: bold; color: #2d3748; height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: left; }
         .book-author { font-size: 11px; color: #718096; text-align: left; margin: 4px 0; }
         .status-badge { display: inline-block; padding: 2px 6px; font-size: 11px; border-radius: 4px; font-weight: bold; }
         .status-available { background-color: #c6f6d5; color: #22543d; }
         .status-borrowed { background-color: #fed7d7; color: #742a2a; }
-        .delete-book-btn { position: absolute; top: 6px; right: 6px; background: rgba(229, 62, 62, 0.1); color: #e53e3e; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 10; }
+        .delete-btn { position: absolute; top: 6px; right: 6px; background: rgba(229, 62, 62, 0.1); color: #e53e3e; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 10; font-weight: bold; }
+        .delete-btn:hover { background: #e53e3e; color: white; }
 
-        /* 2️⃣ 學習系統樣式（模擬資料夾圖層） */
-        .breadcrumb { padding: 10px 20px; background: #edf2f7; font-size: 14px; font-weight: bold; color: #4a5568; border-bottom: 1px solid #e2e8f0; }
-        .file-explorer { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 20px; padding: 25px; }
-        .explorer-item { text-align: center; cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.1s; }
-        .explorer-item:hover { background: #ebf8ff; }
-        .file-icon { font-size: 44px; margin-bottom: 6px; }
-        .file-name { font-size: 13px; font-weight: 500; color: #2d3748; word-break: break-all; }
+        /* 2️⃣ 學習系統排版 */
+        .breadcrumb { padding: 12px 20px; background: #edf2f7; font-size: 14px; font-weight: bold; color: #4a5568; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 5px; }
+        .file-explorer { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 20px; padding: 25px; }
+        .explorer-item { text-align: center; cursor: pointer; padding: 15px 10px; border-radius: 8px; transition: background 0.1s; position: relative; border: 1px solid transparent; }
+        .explorer-item:hover { background: #ebf8ff; border-color: #e2e8f0; }
+        .file-icon { font-size: 48px; margin-bottom: 6px; }
+        .file-name { font-size: 13px; font-weight: 500; color: #2d3748; word-break: break-all; line-height: 1.3; }
 
-        /* 3️⃣ 公告欄樣式 */
+        /* 3️⃣ 公告欄排版 */
         .news-list { padding: 20px; }
         .news-item { background: #fff; border-left: 4px solid #dd6b20; padding: 15px; margin-bottom: 15px; border-radius: 0 6px 6px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); position: relative; }
         .news-date { font-size: 12px; color: #a0aec0; margin-bottom: 4px; }
         .news-content { font-size: 14px; color: #2d3748; font-weight: bold; line-height: 1.5; }
-        .delete-news-btn { position: absolute; top: 15px; right: 15px; color: #e53e3e; background: none; border: none; font-weight: bold; cursor: pointer; display: none; }
 
-        /* 按鈕與彈出層 */
+        /* 通用按鈕與彈出層 */
         .btn { padding: 8px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
         .btn-primary { background: #dd6b20; color: white; width: 100%; }
         .btn-secondary { background: #e2e8f0; color: #4a5568; }
@@ -81,7 +86,6 @@
 </head>
 <body>
 
-<!-- 🔒 6767 網站鎖屏 -->
 <div id="siteLockOverlay">
     <div class="lock-box">
         <h3 style="margin-top:0; color: #1a365d;">🔒 歡迎訪問校園綜合網</h3>
@@ -91,112 +95,115 @@
     </div>
 </div>
 
-<!-- 🔀 分流主選單畫面 -->
 <div id="portalMenu">
-    <div class="portal-title">🏫 校園雲端整合服務門戶</div>
+    <div class="portal-header">
+        <div class="portal-title">🏫 校園雲端服務整合門戶</div>
+        <div class="user-status-area" style="background:#edf2f7; padding:6px 12px; border-radius:20px;">
+            <span class="user-info" id="portalUserInfo" style="color:#4a5568; font-weight:bold; margin-right:5px;">訪客您好</span>
+            <button class="login-btn" id="portalLoginBtn" onclick="openAuthModal('login')" style="padding:4px 10px; font-size:12px;">登入/註冊</button>
+            <button class="logout-btn" id="portalLogoutBtn" onclick="logout()" style="display:none; padding:4px 10px; font-size:12px;">登出</button>
+        </div>
+    </div>
     <div class="portal-grid">
         <div class="portal-card lib" onclick="switchView('library')">
             <div class="portal-icon">📚</div>
             <div class="portal-name">圖書館系統</div>
-            <div class="portal-desc">線上查詢館藏書籍，直接點擊卡片快速辦理借閱與歸還手續。</div>
+            <div class="portal-desc">線上查詢與架設書籍，讀者可直接「點擊卡片」快速完成借還書。</div>
         </div>
         <div class="portal-card study" onclick="switchView('learning')">
             <div class="portal-icon">📁</div>
             <div class="portal-name">學習系統</div>
-            <div class="portal-desc">多層級學術資料夾，檢視隨堂教材 PPT、PDF、Word 及 Excel 檔案。</div>
+            <div class="portal-desc">動態雲端硬碟！管理員可在各層級中自由建立資料夾、新增教材檔案。</div>
         </div>
         <div class="portal-card news" onclick="switchView('announcement')">
             <div class="portal-icon">📢</div>
             <div class="portal-name">今日公告欄</div>
-            <div class="portal-desc">查看校園及圖書館最新消息。管理員可即時上架與修訂公告。</div>
+            <div class="portal-desc">發布及檢視校園最新通知。管理員可即時上架與修訂公告。</div>
         </div>
     </div>
 </div>
 
-<!-- ================= 1️⃣ 圖書館系統主頁 ================= -->
 <div class="system-container" id="librarySystem">
     <header>
         <button class="nav-back-btn" onclick="goBackToPortal()">↩ 返回主選單</button>
         <div class="brand-title">📚 圖書館資訊系統</div>
-        <div class="user-status-area">
-            <span class="user-info" id="userInfo_lib">請登入系統</span>
-            <button class="login-btn" id="loginBtn_lib" onclick="openAuthModal('login')">登入 / 註冊</button>
-            <button class="logout-btn" id="logoutBtn_lib" onclick="logout()" style="display:none;">登出</button>
-        </div>
+        <div class="user-info" id="headerUserInfo_lib">訪客</div>
     </header>
     <div class="admin-dashboard" id="adminDashboard_lib">
-        <div class="admin-grid">
-            <div class="admin-card">
-                <div style="color:#c05621; font-weight:bold; margin-bottom:10px;">➕ 上架新期刊書籍</div>
-                <div class="form-row"><input type="text" class="search-input" id="newBookTitle" placeholder="輸入名稱"></div>
-                <div class="form-row"><input type="text" class="search-input" id="newBookCode" placeholder="輸入 ISSN 條碼"></div>
-                <button class="btn btn-primary" onclick="addNewBook()">儲存上架</button>
-            </div>
-            <div class="admin-card">
-                <div style="color:#c05621; font-weight:bold; margin-bottom:10px;">🔧 系統控制</div>
-                <p style="font-size:13px; color:#718096;">點擊下方按鈕可將所有書籍及註冊帳號清除回復出廠狀態。</p>
-                <button class="btn" onclick="clearAllData()" style="background: #fed7d7; color: #9b2c2c;">重置清空完整系統</button>
-            </div>
+        <div style="color:#c05621; font-weight:bold; margin-bottom:10px;">➕ 上架新期刊書籍 (管理員功能)</div>
+        <div class="admin-grid" style="grid-template-columns: 1fr 1fr 150px; align-items: flex-end; gap:10px;">
+            <div><input type="text" class="search-input" id="newBookTitle" placeholder="輸入期刊/書籍名稱"></div>
+            <div><input type="text" class="search-input" id="newBookCode" placeholder="輸入 ISSN 條碼"></div>
+            <button class="btn btn-primary" onclick="addNewBook()" style="height:40px;">儲存上架</button>
         </div>
     </div>
     <div class="search-section">
-        <div style="font-size:14px; font-weight:bold; margin-bottom:8px; color:#2d3748;">🔍 快速搜尋（💡 點擊下方任何書籍即可直接辦理借閱/還書）</div>
-        <input type="text" class="search-input" id="searchInput" oninput="filterBooks()" placeholder="輸入書名或條碼進行即時篩選...">
+        <input type="text" class="search-input" id="searchInput" oninput="filterBooks()" placeholder="🔍 輸入關鍵字篩選館藏... (💡 登入後點擊下方卡片直接借/還)">
     </div>
-    <div class="main-content">
-        <div class="books-grid" id="booksGrid"></div>
-    </div>
+    <div class="main-content"><div class="books-grid" id="booksGrid"></div></div>
 </div>
 
-<!-- ================= 2️⃣ 學習系統主頁（多層級資料夾） ================= -->
 <div class="system-container" id="learningSystem">
     <header>
         <button class="nav-back-btn" onclick="goBackToPortal()">↩ 返回主選單</button>
         <div class="brand-title">📁 雲端學習資源庫</div>
-        <div style="font-size:12px; color:#bee3f8;">模擬資料夾教材總管</div>
+        <div class="user-info" id="headerUserInfo_study">訪客</div>
     </header>
+    
+    <div class="admin-dashboard" id="adminDashboard_study">
+        <div style="color:#2c7a7b; font-weight:bold; margin-bottom:10px;">✍️ 在當前資料夾放資料 (管理員功能)</div>
+        <div class="admin-grid" style="grid-template-columns: 1fr 150px 150px; gap:10px; align-items:center;">
+            <div>
+                <input type="text" class="search-input" id="newItemName" placeholder="請輸入資料夾或檔案的名稱...">
+            </div>
+            <div>
+                <select id="newItemType" class="select-input">
+                    <option value="folder">新建 資料夾 📁</option>
+                    <option value="ppt">新建 PPT 📊</option>
+                    <option value="pdf">新建 PDF 📕</option>
+                    <option value="doc">新建 Word 📘</option>
+                    <option value="excel">新建 Excel 💚</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="addNewStudyItem()" style="background:#319795; height:40px;">建立並放置</button>
+        </div>
+    </div>
+
     <div class="breadcrumb" id="folderBreadcrumb">目前位置: 根目錄 /</div>
     <div class="file-explorer" id="fileExplorer"></div>
 </div>
 
-<!-- ================= 3️⃣ 公告欄系統主頁 ================= -->
 <div class="system-container" id="announcementSystem">
     <header>
         <button class="nav-back-btn" onclick="goBackToPortal()">↩ 返回主選單</button>
         <div class="brand-title">📢 今日公告佈告欄</div>
-        <div class="user-status-area">
-            <span class="user-info" id="userInfo_news">請登入系統</span>
-            <button class="login-btn" id="loginBtn_news" onclick="openAuthModal('login')">登入 / 註冊</button>
-            <button class="logout-btn" id="logoutBtn_news" onclick="logout()" style="display:none;">登出</button>
-        </div>
+        <div class="user-info" id="headerUserInfo_news">訪客</div>
     </header>
-    <!-- 管理員發布公告區 -->
-    <div class="admin-dashboard" id="adminDashboard_news" style="background:#f7fafc; border-bottom:3px solid #cbd5e0;">
-        <div style="color:#2d3748; font-weight:bold; margin-bottom:10px;">✍️ 發布今日新公告 (管理員專屬)</div>
+    <div class="admin-dashboard" id="adminDashboard_news">
+        <div style="color:#2d3748; font-weight:bold; margin-bottom:10px;">✍️ 發布今日新公告 (管理員功能)</div>
         <div class="form-row">
-            <textarea id="newsTextArea" class="search-input" rows="3" placeholder="請輸入今日公告內容..." style="font-family:inherit; resize:none;"></textarea>
+            <textarea id="newsTextArea" class="search-input" rows="2" placeholder="請輸入今日公告內容..." style="font-family:inherit; resize:none;"></textarea>
         </div>
-        <button class="btn btn-primary" onclick="addNewNews()" style="background:#2b6cb0; width:150px;">上架發布</button>
+        <button class="btn btn-primary" onclick="addNewNews()" style="background:#2b6cb0; width:120px;">發布公告</button>
     </div>
     <div class="news-list" id="newsListContainer"></div>
 </div>
 
-<!-- 🔐 統一讀者註冊/登入彈出視窗 -->
 <div class="modal-overlay" id="authModal">
     <div class="modal-box" id="loginBox">
-        <h3 style="margin-top:0;text-align:center;color:#1a365d;">讀者登入</h3>
+        <h3 style="margin-top:0;text-align:center;color:#1a365d;">讀者/管理員登入</h3>
         <div class="form-row"><label>帳號 / 學號</label><input type="text" class="search-input" id="loginUser" placeholder="請輸入帳號" style="padding:8px;"></div>
         <div class="form-row"><label>個人密碼</label><input type="password" class="search-input" id="loginPass" placeholder="請輸入密碼" style="padding:8px;"></div>
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn btn-primary" onclick="handleLogin()" style="background: #2b6cb0;">確定登入</button>
             <button class="btn btn-secondary" onclick="closeAuthModal()" style="width: 100%;">取消</button>
         </div>
-        <div class="switch-link" onclick="switchAuthMode('register')">沒有帳號？點此註冊新讀者（自訂密碼）</div>
+        <div class="switch-link" onclick="switchAuthMode('register')">沒有帳號？點此自訂註冊讀者</div>
     </div>
     <div class="modal-box" id="registerBox" style="display:none;">
         <h3 style="margin-top:0;text-align:center;color:#dd6b20;">新讀者註冊</h3>
-        <div class="form-row"><label>設定全新帳號</label><input type="text" class="search-input" id="regUser" placeholder="請設定專屬帳號" style="padding:8px;"></div>
-        <div class="form-row"><label>設定個人密碼</label><input type="password" class="search-input" id="regPass" placeholder="請設定不與他人相同的密碼" style="padding:8px;"></div>
+        <div class="form-row"><label>設定全新帳號</label><input type="text" class="search-input" id="regUser" placeholder="請設定帳號" style="padding:8px;"></div>
+        <div class="form-row"><label>設定個人密碼</label><input type="password" class="search-input" id="regPass" placeholder="請設定專屬密碼" style="padding:8px;"></div>
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn btn-primary" onclick="handleRegister()" style="background: #dd6b20;">完成註冊</button>
             <button class="btn btn-secondary" onclick="closeAuthModal()" style="width: 100%;">取消</button>
@@ -208,241 +215,224 @@
 <footer><div>© 2026 校園數位整合系統一體化平台</div></footer>
 
 <script>
-    // ================== 核心資料結構與持久化記憶庫 ==================
+    // ================== 📦 資料持久化初始結構 ==================
     const defaultBooks = [
         { title: "永續發展與環境期刊", code: "2076-9342", status: "可借閱", borrower: null },
         { title: "全球經濟學學報", code: "1019-5289", status: "可借閱", borrower: null }
     ];
     const defaultNews = [
-        { date: "2026-05-27", content: "📢 歡迎使用全新的三合一校園系統！圖書館書籍現在支援「直接點擊卡片」快速辦理借閱與還書手續囉！" },
-        { date: "2026-05-26", content: "📌 學習系統已上架多個期末複習資料夾，包含 PPT、PDF、Word 講義與 Excel 練習檔，歡迎點閱觀看。" }
+        { date: "2026-05-27", content: "📢 管理員已解鎖學習硬碟權限！切換管理員身份即可自由在各層資料夾新增放資料囉！" }
     ];
+    // 預設學習資料夾樹狀圖形結構
+    const defaultFolderStructure = {
+        id: "root", name: "根目錄", type: "folder",
+        children: [
+            { id: "f1", name: "115學年度隨堂講義_PPT", type: "folder", children: [{ id: "file_1", name: "第一週_網頁工程概論.ppt", type: "ppt" }] },
+            { id: "f2", name: "期末專案參考_PDF", type: "folder", children: [] }
+        ]
+    };
 
-    if(localStorage.getItem('sys_initialized') === null) {
+    if(localStorage.getItem('sys_v3_initialized') === null) {
         localStorage.setItem('sys_books', JSON.stringify(defaultBooks));
         localStorage.setItem('sys_news', JSON.stringify(defaultNews));
-        localStorage.setItem('sys_users', JSON.stringify({ 'admin': 'admin123' }));
-        localStorage.setItem('sys_initialized', 'true');
+        localStorage.setItem('sys_folder', JSON.stringify(defaultFolderStructure));
+        localStorage.setItem('sys_users', JSON.stringify({ 'admin': 'admin123' })); // 內建管理員
+        localStorage.setItem('sys_v3_initialized', 'true');
     }
 
-    let booksData = JSON.parse(localStorage.getItem('sys_books')) || [];
-    let newsData = JSON.parse(localStorage.getItem('sys_news')) || [];
-    let usersDatabase = JSON.parse(localStorage.getItem('sys_users')) || {};
+    let booksData = JSON.parse(localStorage.getItem('sys_books'));
+    let newsData = JSON.parse(localStorage.getItem('sys_news'));
+    let folderRootData = JSON.parse(localStorage.getItem('sys_folder'));
+    let usersDatabase = JSON.parse(localStorage.getItem('sys_users'));
+    
     let currentUser = null;
     let currentSystemView = '';
+    let folderPathStack = [folderRootData]; // 紀錄瀏覽資料夾的路徑軌跡
 
-    // ================== 🔒 驗證 6767 網站鎖 ==================
+    // ================== 🔒 密碼驗證鎖 ==================
     function verifySiteLock() {
         if (document.getElementById('siteTokenInput').value === '6767') {
             document.getElementById('siteLockOverlay').style.display = 'none';
             document.getElementById('portalMenu').style.display = 'block';
+            syncUserUI();
         } else {
             alert('密碼錯誤！'); document.getElementById('siteTokenInput').value = '';
         }
     }
     document.getElementById('siteTokenInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifySiteLock(); });
 
-    // ================== 🔀 分流控制邏輯 ==================
+    // ================== 🔀 切換分流視窗 ==================
     function switchView(target) {
         document.getElementById('portalMenu').style.display = 'none';
         document.querySelectorAll('.system-container').forEach(el => el.style.display = 'none');
-        
         currentSystemView = target;
+        
         if (target === 'library') {
-            document.getElementById('librarySystem').style.display = 'block';
-            renderBooks();
+            document.getElementById('librarySystem').style.display = 'block'; renderBooks();
         } else if (target === 'learning') {
-            document.getElementById('learningSystem').style.display = 'block';
-            renderFolder();
+            document.getElementById('learningSystem').style.display = 'block'; renderFolder();
         } else if (target === 'announcement') {
-            document.getElementById('announcementSystem').style.display = 'block';
-            renderNews();
+            document.getElementById('announcementSystem').style.display = 'block'; renderNews();
         }
     }
     function goBackToPortal() {
         document.querySelectorAll('.system-container').forEach(el => el.style.display = 'none');
         document.getElementById('portalMenu').style.display = 'block';
+        syncUserUI();
     }
 
-    // ================== 1️⃣ 圖書館系統模組 (點擊直接借還) ==================
+    // ================== 1️⃣ 圖書館控制 ==================
     function renderBooks(dataToRender = booksData) {
         const grid = document.getElementById('booksGrid'); grid.innerHTML = '';
-        if (dataToRender.length === 0) { grid.innerHTML = '<div style="color: #a0aec0; text-align: center; padding: 30px; width:100%;">無館藏資料。</div>'; return; }
-        
+        const isAdm = currentUser && currentUser.role === 'admin';
         dataToRender.forEach((book) => {
             const actualIdx = booksData.findIndex(b => b.code === book.code);
             const isAvailable = book.status === "可借閱";
-            const badgeClass = isAvailable ? 'status-available' : 'status-borrowed';
-            const displayStatus = isAvailable ? '可借閱' : `已借 (${book.borrower})`;
-            const delBtnStyle = (currentUser && currentUser.role === 'admin') ? 'display: flex;' : 'display: none;';
-            
             grid.innerHTML += `
                 <div class="book-card" onclick="clickToBorrowOrReturn(${actualIdx})">
-                    <button class="delete-book-btn" style="${delBtnStyle}" onclick="event.stopPropagation(); deleteBook(${actualIdx});">×</button>
+                    <button class="delete-btn" style="${isAdm ? 'display:flex;' : 'none'}" onclick="event.stopPropagation(); deleteBook(${actualIdx});">×</button>
                     <div class="book-cover-placeholder">📖</div>
                     <div class="book-title">${book.title}</div>
                     <div class="book-author">ISSN: ${book.code}</div>
-                    <span class="status-badge ${badgeClass}">${displayStatus}</span>
+                    <span class="status-badge ${isAvailable?'status-available':'status-borrowed'}">${isAvailable?'可借閱':'已借('+book.borrower+')'}</span>
                 </div>`;
         });
     }
-
-    // ⭐ 點擊卡片直接借/還書核心邏輯
-    function clickToBorrowOrReturn(index) {
-        if (!currentUser) { alert('請先登入系統才能辦理借還書手續！'); openAuthModal('login'); return; }
-        
-        let book = booksData[index];
+    function clickToBorrowOrReturn(idx) {
+        if (!currentUser) { alert('請先在主選單登入帳號！'); openAuthModal('login'); return; }
+        let book = booksData[idx];
         if (currentUser.role === 'admin') {
-            // 管理員點擊：彈出控制
-            if(confirm(`最高管理員控制：確定要把《${book.title}》強制收回館藏（辦理還書）嗎？`)) {
-                book.status = "可借閱"; book.borrower = null;
-                alert('已強制歸還完畢！');
-            }
+            if(confirm(`管理員控制：確定強制歸還《${book.title}》？`)) { book.status = "可借閱"; book.borrower = null; }
         } else {
-            // 一般讀者點擊
             if (book.status === "可借閱") {
-                if (confirm(`確定要借閱《${book.title}》嗎？`)) {
-                    book.status = "已借出"; book.borrower = currentUser.name;
-                    alert('🎉 借書成功！');
-                }
-            } else {
-                if (book.borrower === currentUser.name) {
-                    if (confirm(`《${book.title}》是您借的，確定要辦理歸還嗎？`)) {
-                        book.status = "可借閱"; book.borrower = null;
-                        alert('↩️ 還書成功，謝謝！');
-                    }
-                } else {
-                    alert(`這本書目前已被 ${book.borrower} 借走囉，無法重複借閱！`);
-                }
-            }
+                if (confirm(`確定借閱《${book.title}》？`)) { book.status = "已借出"; book.borrower = currentUser.name; }
+            } else if (book.borrower === currentUser.name) {
+                if (confirm(`確定歸還《${book.title}》？`)) { book.status = "可借閱"; book.borrower = null; }
+            } else { alert('此書已被借走！'); }
         }
-        localStorage.setItem('sys_books', JSON.stringify(booksData));
-        renderBooks();
-    }
-
-    function filterBooks() {
-        const kw = document.getElementById('searchInput').value.toLowerCase().trim();
-        renderBooks(booksData.filter(b => b.title.toLowerCase().includes(kw) || b.code.toLowerCase().includes(kw)));
+        localStorage.setItem('sys_books', JSON.stringify(booksData)); renderBooks();
     }
     function addNewBook() {
         const t = document.getElementById('newBookTitle').value.trim(); const c = document.getElementById('newBookCode').value.trim();
-        if (!t || !c) { alert('請填寫完整！'); return; }
-        if (booksData.some(b => b.code === c)) { alert('條碼重複！'); return; }
-        booksData.push({ title: t, code: c, status: "可借閱", borrower: null });
+        if(!t || !c) return; booksData.push({ title: t, code: c, status: "可借閱", borrower: null });
         localStorage.setItem('sys_books', JSON.stringify(booksData)); renderBooks();
         document.getElementById('newBookTitle').value = ''; document.getElementById('newBookCode').value = '';
     }
-    function deleteBook(idx) { if (confirm('永久移除該館藏？')) { booksData.splice(idx, 1); localStorage.setItem('sys_books', JSON.stringify(booksData)); renderBooks(); } }
+    function deleteBook(idx) { if(confirm('確定下架移除書籍？')) { booksData.splice(idx, 1); localStorage.setItem('sys_books', JSON.stringify(booksData)); renderBooks(); } }
+    function filterBooks() { const kw = document.getElementById('searchInput').value.toLowerCase().trim(); renderBooks(booksData.filter(b => b.title.toLowerCase().includes(kw) || b.code.toLowerCase().includes(kw))); }
 
-    // ================== 2️⃣ 學習系統模組 (多層級模擬資料夾結構) ==================
-    const folderData = {
-        name: "根目錄",
-        type: "folder",
-        children: [
-            {
-                name: "115學年度隨堂講義_PPT",
-                type: "folder",
-                children: [
-                    { name: "第一週_網頁全棧工程概論.ppt", type: "ppt" },
-                    { name: "第二週_前端響應式UI設計.ppt", type: "ppt" },
-                    { name: "第三週_資料庫記憶體持久化探討.ppt", type: "ppt" }
-                ]
-            },
-            {
-                name: "國際標準與科研論文_PDF",
-                type: "folder",
-                children: [
-                    { name: "ISSN國際標準序列號管理辦法.pdf", type: "pdf" },
-                    { name: "雲端分散式架構與安全性研究.pdf", type: "pdf" }
-                ]
-            },
-            {
-                name: "期末專案分組名單_Excel",
-                type: "folder",
-                children: [
-                    { name: "圖書館系統實作小組名冊.excel", type: "excel" },
-                    { name: "學生成績與出席考核統計表.excel", type: "excel" }
-                ]
-            },
-            { name: "課程大綱與評分標準公約.docx", type: "doc" }
-        ]
-    };
-
-    let folderPathStack = [folderData]; // 用來記錄使用者點到哪一組資料夾
-
+    // ================== 2️⃣ ⭐ 學習系統模組 (動態放資料硬碟) ==================
     function renderFolder() {
         const currentFolder = folderPathStack[folderPathStack.length - 1];
         const explorer = document.getElementById('fileExplorer'); explorer.innerHTML = '';
+        const isAdm = currentUser && currentUser.role === 'admin';
         
-        // 更新麵包屑路徑
-        let pathText = "目前位置: " + folderPathStack.map(f => f.name).join(' / ');
-        document.getElementById('folderBreadcrumb').innerText = pathText;
+        // 更新麵包屑
+        document.getElementById('folderBreadcrumb').innerText = "目前位置: " + folderPathStack.map(f => f.name).join(' / ') + ' /';
 
-        // 如果不是在最上層根目錄，手動塞一個「返回上一層」的虛擬按鈕
+        // 塞入返回上一層
         if (folderPathStack.length > 1) {
             explorer.innerHTML += `
                 <div class="explorer-item" onclick="popFolder()">
                     <div class="file-icon">⬅️</div>
-                    <div class="file-name" style="color:#2b6cb0; font-weight:bold;">返回上一層</div>
+                    <div class="file-name" style="color:#319795; font-weight:bold;">返回上一層</div>
                 </div>`;
         }
 
+        // 渲染子項目
         currentFolder.children.forEach((item, idx) => {
             let icon = '📄';
             if (item.type === 'folder') icon = '📁';
             else if (item.type === 'ppt') icon = '📊';
             else if (item.type === 'pdf') icon = '📕';
-            else if (item.type === 'excel') icon = '💚';
             else if (item.type === 'doc') icon = '📘';
+            else if (item.type === 'excel') icon = '💚';
 
             explorer.innerHTML += `
                 <div class="explorer-item" onclick="clickFolderItem(${idx})">
+                    <button class="delete-btn" style="${isAdm ? 'display:flex;' : 'none'}" onclick="event.stopPropagation(); deleteStudyItem(${idx});">×</button>
                     <div class="file-icon">${icon}</div>
                     <div class="file-name">${item.name}</div>
                 </div>`;
         });
     }
 
-    function clickFolderItem(index) {
-        const currentFolder = folderPathStack[folderPathStack.length - 1];
-        const selectedItem = currentFolder.children[index];
+    // ⭐ 管理員建立新項目 (放資料)
+    function addNewStudyItem() {
+        const nameInput = document.getElementById('newItemName').value.trim();
+        const typeInput = document.getElementById('newItemType').value;
+        if (!nameInput) { alert('請輸入名稱！'); return; }
 
-        if (selectedItem.type === 'folder') {
-            folderPathStack.push(selectedItem); // 深入下一層
+        let extension = '';
+        if (typeInput !== 'folder' && !nameInput.includes('.')) {
+            if (typeInput === 'ppt') extension = '.ppt';
+            if (typeInput === 'pdf') extension = '.pdf';
+            if (typeInput === 'doc') extension = '.docx';
+            if (typeInput === 'excel') extension = '.xlsx';
+        }
+
+        const newItem = {
+            id: "item_" + Date.now(),
+            name: nameInput + extension,
+            type: typeInput,
+            children: typeInput === 'folder' ? [] : undefined
+        };
+
+        // 拿到目前資料夾的指標，直接塞進 children
+        const currentFolder = folderPathStack[folderPathStack.length - 1];
+        currentFolder.children.push(newItem);
+
+        // 同步寫入 LocalStorage 持久化儲存
+        localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
+        
+        document.getElementById('newItemName').value = '';
+        renderFolder();
+        alert(`成功放置項目：${newItem.name}`);
+    }
+
+    // 刪除學習檔案項目
+    function deleteStudyItem(idx) {
+        if (confirm('確定要永久刪除此教學項目嗎？')) {
+            const currentFolder = folderPathStack[folderPathStack.length - 1];
+            currentFolder.children.splice(idx, 1);
+            localStorage.setItem('sys_folder', JSON.stringify(folderRootData));
             renderFolder();
+        }
+    }
+
+    function clickFolderItem(idx) {
+        const currentFolder = folderPathStack[folderPathStack.length - 1];
+        const target = currentFolder.children[idx];
+        if (target.type === 'folder') {
+            folderPathStack.push(target); renderFolder();
         } else {
-            // 檔案則顯示模擬開啟
-            alert(`🖥️ 系統正在加載並開啟檔案：\n👉 [${selectedItem.type.toUpperCase()}] ${selectedItem.name}\n\n(此為網頁沙盒環境，已成功載入資料流。)`);
+            alert(`🖥️ 模擬打開檔案：\n格式：[${target.type.toUpperCase()}]\n名稱：${target.name}`);
         }
     }
     function popFolder() { if(folderPathStack.length > 1) { folderPathStack.pop(); renderFolder(); } }
 
-    // ================== 3️⃣ 公告欄系統模組 ==================
+    // ================== 3️⃣ 公告欄控制 ==================
     function renderNews() {
         const container = document.getElementById('newsListContainer'); container.innerHTML = '';
         const isAdm = currentUser && currentUser.role === 'admin';
-        document.getElementById('adminDashboard_news').style.display = isAdm ? 'block' : 'none';
-
         newsData.forEach((news, idx) => {
             container.innerHTML += `
                 <div class="news-item">
-                    <button class="delete-news-btn" style="${isAdm ? 'display:block;' : 'none'}" onclick="deleteNews(${idx})">下架 ×</button>
+                    <button class="delete-btn" style="${isAdm ? 'display:flex;' : 'none'}" onclick="deleteNews(${idx})">×</button>
                     <div class="news-date">${news.date}</div>
                     <div class="news-content">${news.content}</div>
                 </div>`;
         });
     }
     function addNewNews() {
-        const txt = document.getElementById('newsTextArea').value.trim();
-        if(!txt) return;
-        const today = new Date().toISOString().split('T')[0];
-        newsData.unshift({ date: today, content: txt });
+        const txt = document.getElementById('newsTextArea').value.trim(); if(!txt) return;
+        newsData.unshift({ date: new Date().toISOString().split('T')[0], content: txt });
         localStorage.setItem('sys_news', JSON.stringify(newsData)); renderNews();
-        document.getElementById('newsTextArea').value = ''; alert('公告發布成功！');
+        document.getElementById('newsTextArea').value = '';
     }
-    function deleteNews(idx) { if (confirm('確定下架此公告？')) { newsData.splice(idx, 1); localStorage.setItem('sys_news', JSON.stringify(newsData)); renderNews(); } }
+    function deleteNews(idx) { if(confirm('確定移除公告？')) { newsData.splice(idx, 1); localStorage.setItem('sys_news', JSON.stringify(newsData)); renderNews(); } }
 
-    // ================== 🔐 讀者認證（註冊/登入比對） ==================
+    // ================== 🔐 獨立帳號驗證中心 ==================
     function openAuthModal(mode) { document.getElementById('authModal').style.display = 'flex'; switchAuthMode(mode); }
     function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
     function switchAuthMode(mode) {
@@ -451,37 +441,44 @@
     }
     function handleRegister() {
         const u = document.getElementById('regUser').value.trim(); const p = document.getElementById('regPass').value.trim();
-        if(!u || !p) { alert('欄位不能留空！'); return; }
-        if(usersDatabase[u]) { alert('此帳號已存在！'); return; }
+        if(!u || !p) return; if(usersDatabase[u]) { alert('此帳號已存在！'); return; }
         usersDatabase[u] = p; localStorage.setItem('sys_users', JSON.stringify(usersDatabase));
-        alert('註冊成功！已切換至登入'); switchAuthMode('login'); document.getElementById('loginUser').value = u;
+        alert('註冊成功！'); switchAuthMode('login'); document.getElementById('loginUser').value = u;
     }
     function handleLogin() {
         const u = document.getElementById('loginUser').value.trim(); const p = document.getElementById('loginPass').value.trim();
         if(usersDatabase[u] && usersDatabase[u] === p) {
             currentUser = (u === 'admin') ? { name: '最高管理員', role: 'admin' } : { name: u + ' 同學', role: 'student' };
-            syncUserUI(); closeAuthModal();
-            if(currentSystemView === 'library') renderBooks();
-            if(currentSystemView === 'announcement') renderNews();
-            alert('登入成功，歡迎回來 ' + currentUser.name);
+            closeAuthModal(); syncUserUI();
+            alert('歡迎回來！' + currentUser.name);
         } else { alert('帳號或密碼錯誤！'); }
     }
     function syncUserUI() {
-        const label = currentUser ? currentUser.name : '請登入系統';
-        document.getElementById('userInfo_lib').innerText = label;
-        document.getElementById('userInfo_news').innerText = label;
-        
         const isLogin = currentUser !== null;
-        document.getElementById('loginBtn_lib').style.display = isLogin ? 'none' : 'block';
-        document.getElementById('loginBtn_news').style.display = isLogin ? 'none' : 'block';
-        document.getElementById('logoutBtn_lib').style.display = isLogin ? 'block' : 'none';
-        document.getElementById('logoutBtn_news').style.display = isLogin ? 'block' : 'none';
+        const nameLabel = currentUser ? currentUser.name : '訪客您好';
         
-        document.getElementById('adminDashboard_lib').style.display = (currentUser && currentUser.role === 'admin') ? 'block' : 'none';
-        document.getElementById('adminDashboard_news').style.display = (currentUser && currentUser.role === 'admin') ? 'block' : 'none';
+        // 更新大首頁 UI
+        document.getElementById('portalUserInfo').innerText = nameLabel;
+        document.getElementById('portalLoginBtn').style.display = isLogin ? 'none' : 'block';
+        document.getElementById('portalLogoutBtn').style.display = isLogin ? 'block' : 'none';
+
+        // 更新子系統 Header 名稱
+        document.getElementById('headerUserInfo_lib').innerText = '使用者: ' + nameLabel;
+        document.getElementById('headerUserInfo_study').innerText = '使用者: ' + nameLabel;
+        document.getElementById('headerUserInfo_news').innerText = '使用者: ' + nameLabel;
+
+        // 連動解鎖所有管理員面板
+        const isAdm = currentUser && currentUser.role === 'admin';
+        document.getElementById('adminDashboard_lib').style.display = isAdm ? 'block' : 'none';
+        document.getElementById('adminDashboard_study').style.display = isAdm ? 'block' : 'none';
+        document.getElementById('adminDashboard_news').style.display = isAdm ? 'block' : 'none';
+
+        // 重新刷新當前畫面
+        if(currentSystemView === 'library') renderBooks();
+        if(currentSystemView === 'learning') renderFolder();
+        if(currentSystemView === 'announcement') renderNews();
     }
-    function logout() { currentUser = null; syncUserUI(); if(currentSystemView === 'library') renderBooks(); if(currentSystemView === 'announcement') renderNews(); }
-    function clearAllData() { if(confirm('確定要徹底清空資料庫並回復出廠預設值嗎？')) { localStorage.clear(); location.reload(); } }
+    function logout() { currentUser = null; syncUserUI(); }
 </script>
 </body>
 </html>
