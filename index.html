@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISSN 圖書館系統 - 手機架設版</title>
+    <title>ISSN 圖書館系統 - 密碼防護註冊版</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; color: #333333; }
-        .page-container { max-width: 1100px; margin: 20px auto; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; }
+        
+        /* 6767 全螢幕密碼鎖屏 */
+        #siteLockOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #1a365d; display: flex; justify-content: center; align-items: center; z-index: 9999; color: white; }
+        .lock-box { background: white; color: #333; padding: 30px; border-radius: 8px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+
+        .page-container { max-width: 1100px; margin: 20px auto; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; display: block; }
         header { background-color: #1a365d; color: #ffffff; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #2b6cb0; flex-wrap: wrap; gap: 10px; }
         .brand-title { font-size: 20px; font-weight: bold; }
         .brand-subtitle { font-size: 11px; color: #bee3f8; margin-top: 2px; }
@@ -15,11 +20,14 @@
         .user-info { font-size: 13px; color: #e2e8f0; }
         .login-btn, .logout-btn { color: #ffffff; background-color: #2b6cb0; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; border: none; }
         .logout-btn { background-color: #e53e3e; }
+        
+        /* 功能區塊 */
         .borrow-section { background-color: #ebf8ff; padding: 20px; border-bottom: 1px solid #bee3f8; display: none; }
         .borrow-title { font-size: 15px; font-weight: bold; color: #2b6cb0; margin-bottom: 10px; }
         .borrow-flex { display: flex; gap: 10px; }
         .borrow-input { flex: 1; padding: 10px; border: 2px solid #90cdf4; border-radius: 6px; font-size: 14px; }
         .borrow-btn { background-color: #3182ce; color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
         .admin-dashboard { background: #fffaf0; border-bottom: 3px dashed #dd6b20; padding: 20px; display: none; }
         .admin-main-title { color: #dd6b20; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
         .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
@@ -30,9 +38,11 @@
         .form-row label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #4a5568; }
         .form-inline { display: flex; gap: 10px; align-items: center; }
         .form-inline input { width: 60px; padding: 4px; border: 1px solid #cbd5e0; border-radius: 4px; text-align: center; }
+        
         .search-section { background-color: #ffffff; padding: 20px; border-bottom: 1px solid #e2e8f0; }
         .search-title { font-size: 15px; font-weight: bold; color: #2d3748; margin-bottom: 10px; }
         .search-input { width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 15px; outline: none; }
+        
         .main-content { background-color: #ffffff; padding: 20px; min-height: 300px; }
         .section-heading { font-size: 16px; font-weight: bold; color: #1a365d; margin-bottom: 20px; border-left: 5px solid #2b6cb0; padding-left: 10px; }
         .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
@@ -44,137 +54,283 @@
         .status-available { background-color: #c6f6d5; color: #22543d; }
         .status-borrowed { background-color: #fed7d7; color: #742a2a; }
         .delete-book-btn { position: absolute; top: 6px; right: 6px; background: rgba(229, 62, 62, 0.1); color: #e53e3e; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        
+        /* 按鈕樣式 */
         .btn { padding: 8px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; }
         .btn-primary { background: #dd6b20; color: white; width: 100%; }
         .btn-secondary { background: #e2e8f0; color: #4a5568; }
+        
+        /* 彈出層 */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 360px; }
-        .account-hint { font-size: 11px; color: #718096; margin-top: 12px; background: #f7fafc; padding: 6px; border-radius: 4px; }
+        .switch-link { text-align: center; margin-top: 12px; font-size: 13px; color: #2b6cb0; cursor: pointer; text-decoration: underline; }
         footer { background-color: #2d3748; color: #cbd5e0; padding: 20px; font-size: 13px; text-align: center; }
     </style>
 </head>
 <body>
-<div class="page-container">
+
+<div id="siteLockOverlay">
+    <div class="lock-box">
+        <h3 style="margin-top:0; color: #1a365d;">🔒 歡迎訪問本站</h3>
+        <p style="font-size: 14px; color:#4a5568;">請輸入網站存取密碼以繼續：</p>
+        <input type="password" id="siteTokenInput" class="search-input" placeholder="請輸入密碼..." style="padding:10px; text-align:center; margin-bottom:15px;">
+        <button class="btn btn-primary" onclick="verifySiteLock()" style="background:#1a365d;">進入系統</button>
+    </div>
+</div>
+
+<div class="page-container" id="mainContainer" style="display:none;">
     <header>
         <div>
             <div class="brand-title">ISSN 圖書館系統</div>
-            <div class="brand-subtitle">Mobile Web Library System</div>
+            <div class="brand-subtitle">Secure Web Library System</div>
         </div>
         <div class="user-status-area">
             <span class="user-info" id="userInfo">請登入系統</span>
-            <button class="login-btn" id="loginBtn" onclick="toggleModal(true)">登入</button>
+            <button class="login-btn" id="loginBtn" onclick="openAuthModal('login')">登入 / 註冊</button>
             <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none;">登出</button>
         </div>
     </header>
+
     <div class="admin-dashboard" id="adminDashboard">
-        <div class="admin-main-title">⚙️ 管理員後台</div>
+        <div class="admin-main-title">⚙️ 管理員最高權限後台</div>
         <div class="admin-grid">
             <div class="admin-card">
                 <div class="card-title">➕ 新增期刊書籍</div>
-                <div class="form-row"><label>名稱</label><input type="text" class="search-input" id="newBookTitle" placeholder="輸入名稱" style="padding: 8px;"></div>
+                <div class="form-row"><label>期刊/書籍名稱</label><input type="text" class="search-input" id="newBookTitle" placeholder="輸入名稱" style="padding: 8px;"></div>
                 <div class="form-row"><label>ISSN / ISBN 條碼</label><input type="text" class="search-input" id="newBookCode" placeholder="輸入條碼" style="padding: 8px;"></div>
-                <button class="btn btn-primary" onclick="addNewBook()">儲存上架</button>
+                <button class="btn btn-primary" onclick="addNewBook()">儲存並上架</button>
             </div>
             <div class="admin-card">
                 <div class="card-title">🔧 圖書館設定</div>
                 <div class="form-row"><div class="form-inline"><label>借閱天數：</label><input type="number" id="cfgDays" value="30"> 天</div></div>
                 <div class="form-row"><div class="form-inline"><label>借閱上限：</label><input type="number" id="cfgMax" value="5"> 冊</div></div>
                 <div class="form-row" style="margin-top: 15px;">
-                    <button class="btn btn-secondary" onclick="saveSettings()">套用</button>
-                    <button class="btn" onclick="resetSystemData()" style="background: #fed7d7; color: #9b2c2c; margin-left: 5px;">恢復預設</button>
+                    <button class="btn btn-secondary" onclick="alert('設定已保存！')">套用規則</button>
+                    <button class="btn" onclick="clearAllData()" style="background: #fed7d7; color: #9b2c2c; margin-left: 5px;">清空並重新初始化</button>
                 </div>
             </div>
         </div>
     </div>
+
     <div class="borrow-section" id="borrowSection">
         <div class="borrow-title">🔑 <span id="borrowActionText">條碼快速借書</span></div>
         <div class="borrow-flex">
-            <input type="text" class="borrow-input" id="barcodeInput" placeholder="點此輸入或掃描條碼...">
-            <button class="borrow-btn" onclick="processBarcode()">確認</button>
+            <input type="text" class="borrow-input" id="barcodeInput" placeholder="點此輸入或用條碼槍掃描 ISSN...">
+            <button class="borrow-btn" onclick="processBarcode()">確認送出</button>
         </div>
     </div>
+
     <div class="search-section">
-        <div class="search-title">🔍 館藏即時搜尋</div>
-        <input type="text" class="search-input" id="searchInput" oninput="filterBooks()" placeholder="輸入關鍵字篩選...">
+        <div class="search-title">🔍 館藏即時篩選</div>
+        <input type="text" class="search-input" id="searchInput" oninput="filterBooks()" placeholder="輸入關鍵字進行篩選...">
     </div>
+
     <div class="main-content">
         <div class="section-heading">展示中館藏</div>
         <div class="books-grid" id="booksGrid"></div>
     </div>
-    <footer><div><strong>ISSN 數位圖書館系統 (手機架設版)</strong></div></footer>
+
+    <footer><div><strong>ISSN 數位圖書館系統</strong></div></footer>
 </div>
-<div class="modal-overlay" id="loginModal">
-    <div class="modal-box">
-        <h3 style="margin-top:0;text-align:center;">系統登入</h3>
-        <div class="form-row"><label>帳號</label><input type="text" class="search-input" id="username" placeholder="student 或 admin" style="padding:8px;"></div>
-        <div class="form-row"><label>密碼</label><input type="password" class="search-input" id="password" value="123456" style="padding:8px;"></div>
+
+<div class="modal-overlay" id="authModal">
+    <div class="modal-box" id="loginBox">
+        <h3 style="margin-top:0;text-align:center;color:#1a365d;">讀者登入</h3>
+        <div class="form-row"><label>帳號 / 學號</label><input type="text" class="search-input" id="loginUser" placeholder="請輸入帳號" style="padding:8px;"></div>
+        <div class="form-row"><label>個人密碼</label><input type="password" class="search-input" id="loginPass" placeholder="請輸入密碼" style="padding:8px;"></div>
         <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn btn-primary" onclick="login()" style="background: #2b6cb0;">登入</button>
-            <button class="btn btn-secondary" onclick="toggleModal(false)" style="width: 100%;">取消</button>
+            <button class="btn btn-primary" onclick="handleLogin()" style="background: #2b6cb0;">確定登入</button>
+            <button class="btn btn-secondary" onclick="closeAuthModal()" style="width: 100%;">取消</button>
         </div>
-        <div class="account-hint"><strong>💡 測試帳號：</strong><br>• 學生：<code>student</code><br>• 管理員：<code>admin</code></div>
+        <div class="switch-link" onclick="switchAuthMode('register')">沒有帳號？點此免費註冊新讀者</div>
+    </div>
+
+    <div class="modal-box" id="registerBox" style="display:none;">
+        <h3 style="margin-top:0;text-align:center;color:#dd6b20;">新讀者註冊</h3>
+        <div class="form-row"><label>自訂自定義帳號 / 學號</label><input type="text" class="search-input" id="regUser" placeholder="設定你的登入帳號" style="padding:8px;"></div>
+        <div class="form-row"><label>自訂個人密碼</label><input type="password" class="search-input" id="regPass" placeholder="設定密碼（不與他人相同）" style="padding:8px;"></div>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-primary" onclick="handleRegister()" style="background: #dd6b20;">完成註冊</button>
+            <button class="btn btn-secondary" onclick="closeAuthModal()" style="width: 100%;">取消</button>
+        </div>
+        <div class="switch-link" onclick="switchAuthMode('login')" style="color:#dd6b20;">已有帳號？返回登入</div>
     </div>
 </div>
+
 <script>
-    const defaultBooks = [
+    // 預設核心帳號庫與核心書籍庫
+    const initBooks = [
         { title: "永續發展與環境期刊", code: "2076-9342", status: "可借閱", borrower: null },
-        { title: "全球經濟學學報", code: "1019-5289", status: "可借閱", borrower: null },
-        { title: "數位時代資訊科學半月刊", code: "1550-1234", status: "已借出", borrower: "張同學" }
+        { title: "全球經濟學學報", code: "1019-5289", status: "可借閱", borrower: null }
     ];
-    let booksData = JSON.parse(localStorage.getItem('lib_books')) || [...defaultBooks];
+
+    // 初始化儲存核心（若本地已有歷史紀錄，則直接沿用歷史，刪除便不再恢復）
+    if(localStorage.getItem('lib_has_initialized') === null) {
+        localStorage.setItem('lib_books', JSON.stringify(initBooks));
+        localStorage.setItem('lib_has_initialized', 'true');
+    }
+
+    let booksData = JSON.parse(localStorage.getItem('lib_books')) || [];
+    let usersDatabase = JSON.parse(localStorage.getItem('lib_users')) || { 'admin': 'admin123' }; // 預設內建管理員
     let currentUser = null;
+
+    // 1. 驗證網站 6767 防護鎖
+    function verifySiteLock() {
+        const token = document.getElementById('siteTokenInput').value;
+        if(token === '6767') {
+            document.getElementById('siteLockOverlay').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            renderBooks();
+        } else {
+            alert('密碼錯誤！無法進入此圖書館系統。');
+            document.getElementById('siteTokenInput').value = '';
+        }
+    }
+
+    // 監聽鎖屏 Enter
+    document.getElementById('siteTokenInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') verifySiteLock(); });
+
+    // 2. 渲染館藏
     function renderBooks(dataToRender = booksData) {
         const grid = document.getElementById('booksGrid'); grid.innerHTML = '';
-        if (dataToRender.length === 0) { grid.innerHTML = '<div style="color: #a0aec0; text-align: center; padding: 20px; width:100%;">無資料</div>'; return; }
-        dataToRender.forEach((book, index) => {
+        if (dataToRender.length === 0) { grid.innerHTML = '<div style="color: #a0aec0; text-align: center; padding: 30px; width:100%;">目前館藏空空如也，請切換管理員新增。</div>'; return; }
+        
+        dataToRender.forEach((book) => {
+            // 利用真實 code 比對目前大資料庫的索引值，確保刪除不會錯亂
+            const actualIndex = booksData.findIndex(b => b.code === book.code);
             const isAvailable = book.status === "可借閱";
             const badgeClass = isAvailable ? 'status-available' : 'status-borrowed';
             const displayStatus = isAvailable ? '可借閱' : `已借 (${book.borrower})`;
             const deleteBtnStyle = (currentUser && currentUser.role === 'admin') ? 'display: flex;' : 'display: none;';
-            grid.innerHTML += `<div class="book-card"><button class="delete-book-btn" style="${deleteBtnStyle}" onclick="deleteBook(${index})">×</button><div class="book-cover-placeholder">📖</div><div class="book-title">${book.title}</div><div class="book-author">ISSN: ${book.code}</div><span class="status-badge ${badgeClass}">${displayStatus}</span></div>`;
+            
+            grid.innerHTML += `
+                <div class="book-card">
+                    <button class="delete-book-btn" style="${deleteBtnStyle}" onclick="deleteBook(${actualIndex})">×</button>
+                    <div class="book-cover-placeholder">📖</div>
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author">ISSN: ${book.code}</div>
+                    <span class="status-badge ${badgeClass}">${displayStatus}</span>
+                </div>`;
         });
     }
+
+    // 3. 搜尋功能
     function filterBooks() {
         const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
         renderBooks(booksData.filter(b => b.title.toLowerCase().includes(keyword) || b.code.toLowerCase().includes(keyword)));
     }
+
+    // 4. 新增書本
     function addNewBook() {
-        const t = document.getElementById('newBookTitle').value.trim(); const c = document.getElementById('newBookCode').value.trim();
-        if (!t || !c) { alert('請填寫完整！'); return; }
-        if (booksData.some(b => b.code === c)) { alert('條碼重複！'); return; }
-        booksData.push({ title: t, code: c, status: "可借閱", borrower: null }); saveData(); renderBooks();
-        document.getElementById('newBookTitle').value = ''; document.getElementById('newBookCode').value = ''; alert('上架成功！');
+        const t = document.getElementById('newBookTitle').value.trim();
+        const c = document.getElementById('newBookCode').value.trim();
+        if (!t || !c) { alert('請完整填寫名稱與條碼！'); return; }
+        if (booksData.some(b => b.code === c)) { alert('此條碼已存在！'); return; }
+        
+        booksData.push({ title: t, code: c, status: "可借閱", borrower: null });
+        saveData();
+        renderBooks();
+        document.getElementById('newBookTitle').value = '';
+        document.getElementById('newBookCode').value = '';
+        alert('新書成功上架！');
     }
-    function deleteBook(i) { if (confirm('確定移除？')) { booksData.splice(i, 1); saveData(); renderBooks(); } }
-    function saveSettings() { alert('設定已套用！'); }
-    function resetSystemData() { if (confirm('確定重設？')) { booksData = [...defaultBooks]; saveData(); renderBooks(); } }
-    function saveData() { localStorage.setItem('lib_books', JSON.stringify(booksData)); }
-    function toggleModal(s) { document.getElementById('loginModal').style.display = s ? 'flex' : 'none'; }
-    function login() {
-        const u = document.getElementById('username').value.trim();
-        if (u === 'student') currentUser = { name: '張同學', role: 'student' };
-        else if (u === 'admin') currentUser = { name: '管理員', role: 'admin' };
-        else { alert('帳號錯誤'); return; }
-        document.getElementById('userInfo').innerText = currentUser.name;
-        document.getElementById('loginBtn').style.display = 'none'; document.getElementById('logoutBtn').style.display = 'block';
-        document.getElementById('borrowSection').style.display = 'block';
-        document.getElementById('adminDashboard').style.display = currentUser.role === 'admin' ? 'block' : 'none';
-        toggleModal(false); renderBooks();
+
+    // 5. 刪除書本（儲存至 LocalStorage，重新整理絕對不會復活回來）
+    function deleteBook(index) {
+        if (confirm(`確定要把《${booksData[index].title}》永久從館藏中移除嗎？`)) {
+            booksData.splice(index, 1);
+            saveData();
+            renderBooks();
+        }
     }
-    function logout() { currentUser = null; document.getElementById('userInfo').innerText = '請登入'; document.getElementById('loginBtn').style.display = 'block'; document.getElementById('logoutBtn').style.display = 'none'; document.getElementById('borrowSection').style.display = 'none'; document.getElementById('adminDashboard').style.display = 'none'; renderBooks(); }
+
+    // 6. 動態註冊與登入處理
+    function openAuthModal(mode) {
+        document.getElementById('authModal').style.display = 'flex';
+        switchAuthMode(mode);
+    }
+    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+    function switchAuthMode(mode) {
+        document.getElementById('loginBox').style.display = mode === 'login' ? 'block' : 'none';
+        document.getElementById('registerBox').style.display = mode === 'register' ? 'block' : 'none';
+    }
+
+    // 註冊儲存
+    function handleRegister() {
+        const u = document.getElementById('regUser').value.trim();
+        const p = document.getElementById('regPass').value.trim();
+        if(!u || !p) { alert('帳號密碼不得為空！'); return; }
+        if(usersDatabase[u]) { alert('此帳號已被註冊使用過！請更換。'); return; }
+        
+        usersDatabase[u] = p; // 加進暫存
+        localStorage.setItem('lib_users', JSON.stringify(usersDatabase)); // 存檔
+        alert('🎉 註冊成功！請直接登入。');
+        switchAuthMode('login');
+        document.getElementById('loginUser').value = u;
+    }
+
+    // 登入比對
+    function handleLogin() {
+        const u = document.getElementById('loginUser').value.trim();
+        const p = document.getElementById('loginPass').value.trim();
+        
+        if(usersDatabase[u] && usersDatabase[u] === p) {
+            if(u === 'admin') {
+                currentUser = { name: '最高管理員', role: 'admin' };
+            } else {
+                currentUser = { name: u + ' 同學', role: 'student' };
+            }
+            
+            document.getElementById('userInfo').innerText = currentUser.name;
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('borrowSection').style.display = 'block';
+            document.getElementById('adminDashboard').style.display = currentUser.role === 'admin' ? 'block' : 'none';
+            
+            closeAuthModal();
+            renderBooks();
+            alert('歡迎回來，' + currentUser.name);
+            setTimeout(() => document.getElementById('barcodeInput').focus(), 200);
+        } else {
+            alert('帳號或密碼不正確！請確認是否已經註冊。');
+        }
+    }
+
+    function logout() {
+        currentUser = null;
+        document.getElementById('userInfo').innerText = '請登入系統';
+        document.getElementById('loginBtn').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('borrowSection').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'none';
+        renderBooks();
+    }
+
+    // 7. 條碼借還書處理
     function processBarcode() {
         const b = document.getElementById('barcodeInput').value.trim(); if (!b) return;
         const book = booksData.find(x => x.code === b);
-        if (!book) { alert('找不到此條碼'); document.getElementById('barcodeInput').value = ''; return; }
-        if (currentUser.role === 'admin') { book.status = "可借閱"; book.borrower = null; alert('已強制收回書籍'); }
-        else {
-            if (book.status === "可借閱") { book.status = "已借出"; book.borrower = currentUser.name; alert('借書成功！'); }
-            else if (book.borrower === currentUser.name) { book.status = "可借閱"; book.borrower = null; alert('還書成功！'); }
-            else { alert('此書已被他人借走'); }
+        if (!book) { alert('找不到此 ISSN 條碼'); document.getElementById('barcodeInput').value = ''; return; }
+        
+        if (currentUser.role === 'admin') {
+            book.status = "可借閱"; book.borrower = null; alert('管理員已強制歸還此書');
+        } else {
+            if (book.status === "可借閱") {
+                book.status = "已借出"; book.borrower = currentUser.name; alert('借書成功！');
+            } else if (book.borrower === currentUser.name) {
+                book.status = "可借閱"; book.borrower = null; alert('還書成功！');
+            } else {
+                alert('此書已被他人借走');
+            }
         }
         saveData(); renderBooks(); document.getElementById('barcodeInput').value = '';
     }
-    renderBooks();
+
+    // 監聽 Enter 條碼
+    document.getElementById('barcodeInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') processBarcode(); });
+
+    function saveData() { localStorage.setItem('lib_books', JSON.stringify(booksData)); }
+    function clearAllData() { if (confirm('確定重置清除？')) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
-  </html>
+</html>
